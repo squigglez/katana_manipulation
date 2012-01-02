@@ -1,0 +1,9 @@
+<stack>
+  <description brief="katana_manipulation">katana_manipulation</description>
+  <author>Maintained by Martin Günther, Henning Deeken</author>
+  <license>GPL</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/katana_manipulation</url>
+  <depend stack="ros" />
+
+</stack>
