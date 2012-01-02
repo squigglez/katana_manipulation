@@ -31,3 +31,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 rosbuild_add_executable(katana_openrave_kinematics src/katana_openrave_kinematics.cpp)
 rosbuild_add_library(katana_openrave_kinematics src/katana_kinematics_plugin.cpp)
+
+rosbuild_add_executable(non_constraint_aware_ik_adapter src/non_constraint_aware_ik_adapter.cpp)

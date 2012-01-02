@@ -30,7 +30,7 @@
 #include <kinematics_msgs/GetConstraintAwarePositionIK.h>
 #include <kinematics_msgs/GetPositionIK.h>
 
-namespace katana_arm_kinematics_constraint_aware
+namespace katana_kinematics_constraint_aware
 {
 
 

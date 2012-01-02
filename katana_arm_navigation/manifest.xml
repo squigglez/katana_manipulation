@@ -19,7 +19,7 @@
   <depend package="katana"/>
   <depend package="katana_description"/>
   <depend package="arm_kinematics" />
-  <depend package="katana_arm_kinematics_constraint_aware" />
+  <depend package="katana_kinematics_constraint_aware" />
 
   <depend package="collision_map"/>
   <depend package="constraint_aware_spline_smoother"/>

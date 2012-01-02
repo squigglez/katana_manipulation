@@ -15,7 +15,7 @@
     <param name="tip_name" value="katana_gripper_tool_frame" />
   </node>
 
-  <node pkg="katana_arm_kinematics_constraint_aware" type="non_constraint_aware_ik_adapter" name="non_constraint_aware_ik_adapter" output="screen">
+  <node pkg="katana_kinematics_constraint_aware" type="non_constraint_aware_ik_adapter" name="non_constraint_aware_ik_adapter" output="screen">
     <param name="ik_service" value="arm_kinematics/get_ik" />
   </node>
 </launch>
