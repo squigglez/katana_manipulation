@@ -164,7 +164,7 @@ int main(int argc, char** argv)
   //ros::service::waitForService("get_openrave_ik");
   //ros::service::waitForService("get_kinematic_solver_info");
 
-  ROS_INFO("katana_openrave_kinematics sucessfully established it's services");
+  ROS_INFO("katana_kinematics_constraint_aware sucessfully established it's services");
   for (size_t i = 0; i < 5; ++i)
     ROS_INFO("%s",joint_limits_[i].joint_name.c_str());
 

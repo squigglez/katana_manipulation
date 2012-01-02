@@ -24,7 +24,7 @@
  *  Author: Henning Deeken  // hdeeken@uos.de
  */
 
-#include <katana_openrave_kinematics/katana_openrave_kinematics.h>
+#include <katana_kinematics_constraint_aware/katana_openrave_kinematics.h>
 #include <pluginlib/class_list_macros.h>
 
 using namespace tf;
@@ -33,9 +33,9 @@ using namespace std;
 using namespace ros;
 
 // register KatanaKinematics as a KinematicsBase implementation
-PLUGINLIB_DECLARE_CLASS(katana_openrave_kinematics, KatanaKinematicsPlugin, katana_openrave_kinematics::KatanaKinematicsPlugin, kinematics::KinematicsBase)
+PLUGINLIB_DECLARE_CLASS(katana_kinematics_constraint_aware, KatanaKinematicsPlugin, katana_kinematics_constraint_aware::KatanaKinematicsPlugin, kinematics::KinematicsBase)
 
-namespace katana_openrave_kinematics
+namespace katana_kinematics_constraint_aware
 {
 
 KatanaKinematicsPlugin::KatanaKinematicsPlugin() :

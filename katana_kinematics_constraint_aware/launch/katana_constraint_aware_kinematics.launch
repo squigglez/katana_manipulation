@@ -20,9 +20,9 @@
 
 <!-- start the arm_kinematics_constraint_aware node for constraint_aware services -->
 <node pkg="arm_kinematics_constraint_aware" type="arm_kinematics_constraint_aware" name="katana_constraint_aware_kinematics" output="screen">
- 	<rosparam command="load" file="$(find katana_openrave_kinematics)/config/katana_kinematics.yaml" />
+ 	<rosparam command="load" file="$(find katana_kinematics_constraint_aware)/config/katana_kinematics.yaml" />
  	<param name="group" value="arm" />
- 	<param name="kinematics_solver" value="katana_openrave_kinematics/KatanaKinematicsPlugin" />
+ 	<param name="kinematics_solver" value="katana_kinematics_constraint_aware/KatanaKinematicsPlugin" />
  </node>
 	 
 </launch>

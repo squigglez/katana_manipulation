@@ -44,7 +44,7 @@
 #include <arm_kinematics_constraint_aware/arm_kinematics_constraint_aware_utils.h>
 #include <ompl/util/RandomNumbers.h>
 
-namespace katana_openrave_kinematics
+namespace katana_kinematics_constraint_aware
 {
 class KatanaKinematicsPlugin : public kinematics::KinematicsBase
 {

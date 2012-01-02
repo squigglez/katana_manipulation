@@ -1,7 +1,7 @@
 arm:
   tip_name: katana_gripper_tool_frame
   root_name: katana_base_link
-  kinematics_solver: katana_openrave_kinematics/KatanaKinematicsPlugin
+  kinematics_solver: katana_kinematics_constraint_aware/KatanaKinematicsPlugin
  #kinematics_solver: arm_kinematics_constraint_aware/KDLArmKinematicsPlugin
 
 #Parameter Set for ACTIVE collision_map   

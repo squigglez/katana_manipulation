@@ -13,7 +13,7 @@
   <author>hdeeken</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/katana_openrave_kinematics</url>
+  <url>http://ros.org/wiki/katana_kinematics_constraint_aware</url>
 
   <depend package="roscpp"/>
   <depend package="rospy"/>

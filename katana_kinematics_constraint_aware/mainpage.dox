@@ -2,7 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b katana_openrave_kinematics is ... 
+\b katana_kinematics_constraint_aware is ... 
 
 <!-- 
 Provide an overview of your package.
