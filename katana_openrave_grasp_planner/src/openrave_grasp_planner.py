@@ -26,6 +26,7 @@ from numpy import *
 import numpy,time,threading
 from itertools import izip
 import tf
+import os
 
 import sensor_msgs.msg
 import trajectory_msgs.msg
@@ -33,7 +34,6 @@ import geometry_msgs.msg
 import object_manipulation_msgs.srv
 import object_manipulation_msgs.msg
 import orrosplanning.srv
-import os
 
 class FastGrasping:
     """Computes a valid grasp for a given object as fast as possible without relying on a pre-computed grasp set
@@ -119,11 +119,17 @@ class FastGrasping:
 
         raise self.GraspingException((self.grasps,self.jointvalues))
 
-    def computeGrasp(self,graspparameters, updateenv=True):
+    def computeGrasp(self,graspparameters):
         if len(graspparameters.approachrays) == 0:
             approachrays = self.gmodel.computeBoxApproachRays(delta=0.001,normalanglerange=0) # rays to approach object (was 0.02/0.5 by default)
         else:
             approachrays = reshape(graspparameters.approachrays,[len(graspparameters.approachrays)/6,6])
+       
+        Ttarget = self.gmodel.target.GetTransform()
+        gapproachrays = c_[dot(approachrays[:,0:3],transpose(Ttarget[0:3,0:3]))+tile(Ttarget[0:3,3],(N,1)),dot(approachrays[:,3:6],transpose(Ttarget[0:3,0:3]))]
+        self.approachgraphs = [self.env.plot3(points=gapproachrays[:,0:3],pointsize=5,colors=array((1,0,0))),
+                               self.env.drawlinelist(points=reshape(c_[gapproachrays[:,0:3],gapproachrays[:,0:3]+0.005*gapproachrays[:,3:6]],(2*N,3)),linewidth=4,colors=array((1,0,0,1)))]
+        
         if len(graspparameters.standoffs) == 0:
             standoffs = [0.01]
         else:
@@ -144,15 +150,17 @@ class FastGrasping:
             dim = len(self.gmodel.manip.GetGripperIndices())
             preshapes = reshape(graspparameters.preshapes,[len(graspparameters.preshapes)/dim,dim])
         try:
-           ## with pre-set manip dir and checkgraspfn
-           self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections, checkgraspfn=self.checkgraspfn,disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-           ## with pre-set manip dir and no checkgraspfn
-           # self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections,disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-           ## with auto-set manip dir and no checkgraspfn
-           # self.gmodel.generate        (preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-           ## with auto-set manip dir and checkgraspfn
-           # self.gmodel.generate        (preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, checkgraspfn=self.checkgraspfn, disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-           return self.grasps,self.jointvalues
+            self.gmodel.disableallbodies=False
+
+            ## with pre-set manip dir and checkgraspfn
+            self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections, checkgraspfn=self.checkgraspfn,graspingnoise=0)
+            ## with pre-set manip dir and no checkgraspfn
+            # self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections,graspingnoise=0)
+            ## with auto-set manip dir and no checkgraspfn
+            # self.gmodel.generate        (preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,graspingnoise=0)
+            ## with auto-set manip dir and checkgraspfn
+            # self.gmodel.generate        (preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, checkgraspfn=self.checkgraspfn, graspingnoise=0)
+            return self.grasps,self.jointvalues
         except self.GraspingException, e:
             return e.args
 
@@ -174,6 +182,7 @@ if __name__ == "__main__":
     (options, args) = parser.parse_args()
     env = OpenRAVEGlobalArguments.parseAndCreate(options,defaultviewer=False)
     RaveLoadPlugin(os.path.join(roslib.packages.get_pkg_dir('orrosplanning'),'lib','liborrosplanning.so'))
+    env.LoadProblem(RaveCreateModule(env,"textserver"),"")
     print 'initializing, please wait for ready signal...'
 
     graspparameters = orrosplanning.srv.SetGraspParametersRequest()
@@ -204,12 +213,6 @@ if __name__ == "__main__":
                 collisionmap = RaveCreateSensorSystem(env,'CollisionMap bodyoffset %s topic %s'%(robot.GetName(),options.collision_map))
             basemanip = interfaces.BaseManipulation(robot)
             grasper = interfaces.Grasper(robot)
-
-        # have to do this manually because running linkstatistics when viewer is enabled segfaults things
-        if options._viewer is None:
-            env.SetViewer('qtcoin')
-        elif len(options._viewer) > 0:
-            env.SetViewer(options._viewer)
 
         listener = tf.TransformListener()
         values = robot.GetDOFValues()
@@ -302,7 +305,7 @@ if __name__ == "__main__":
                         res = object_manipulation_msgs.srv.GraspPlanningResponse()
                         # start planning
                         fastgrasping = FastGrasping(robot,target,ignoreik=options.ignoreik,returngrasps=options.returngrasps)
-                        allgrasps,alljointvalues = fastgrasping.computeGrasp(graspparameters,updateenv=False)
+                        allgrasps,alljointvalues = fastgrasping.computeGrasp(graspparameters)
                         if allgrasps is not None and len(allgrasps) > 0:
                             res.error_code.value = object_manipulation_msgs.msg.GraspPlanningErrorCode.SUCCESS
                             for grasp,jointvalues in izip(allgrasps,alljointvalues):
