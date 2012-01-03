@@ -46,7 +46,6 @@ class FastGrasping:
         self.ignoreik=ignoreik
         self.returngrasps = returngrasps
         self.robot = robot
-        #self.ikmodel = databases.inversekinematics.InverseKinematicsModel(robot=robot,iktype=IkParameterization.Type.Transform6D)
         self.ikmodel = databases.inversekinematics.InverseKinematicsModel(robot=robot,iktype=IkParameterization.Type.TranslationDirection5D)
         if not self.ikmodel.load():
             self.ikmodel.autogenerate()
@@ -55,7 +54,7 @@ class FastGrasping:
         self.jointvalues = []
         self.grasps = []
         self.manipulatordirections = array([[0.0,0.0,1.0]]) # ik manipulator direction is [1,0,0], which seems to work not that well for aquiring grasps
-	self.count_ik_sols = 0;
+        self.count_ik_sols = 0;
 
     def checkgraspfn(self, contacts,finalconfig,grasp,info):
         print 'call checkgraspfn...'
@@ -63,26 +62,25 @@ class FastGrasping:
 		#print info
         # check if grasp can be reached by robot
         Tglobalgrasp = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
-		#print Tglobalgrasp
-		# have to set the preshape since the current robot is at the final grasp!
+        # have to set the preshape since the current robot is at the final grasp!
         self.gmodel.setPreshape(grasp)
         jointvalues = array(finalconfig[0])
         print 'preshape values:'
         print jointvalues
         sol = None
-		#print self.ignoreik
+            #print self.ignoreik
 
         if self.ignoreik:
             if self.gmodel.manip.CheckEndEffectorCollision(Tglobalgrasp):
                 print 'end-effector collision'
-		return False
+                return False
         else:
             if self.gmodel.manip.GetIkSolver().Supports(IkParameterization.Type.Transform6D):
                 print 'hehe lets do 6D ik'
                 sol = self.gmodel.manip.FindIKSolution(Tglobalgrasp,True)
             elif self.gmodel.manip.GetIkSolver().Supports(IkParameterization.Type.TranslationDirection5D):
                 #print 'grasp position:'
-				#print Tglobalgrasp[0:3,3]
+                #print Tglobalgrasp[0:3,3]
                 print 'grasp orientation matrix'
                 print Tglobalgrasp[0:3,0:3]
                 print 'manipulator direction:'
@@ -90,15 +88,12 @@ class FastGrasping:
                 print 'grasp direction:'
                 print dot(Tglobalgrasp[0:3,0:3],[0,0,1])
                 ikparam = IkParameterization(Ray(Tglobalgrasp[0:3,3],dot(Tglobalgrasp[0:3,0:3],self.gmodel.manip.GetDirection())),IkParameterization.Type.TranslationDirection5D)
-                #ikparam = IkParameterization(Ray(Tglobalgrasp[0:3,3],-dot(Tglobalgrasp[0:3,0:3],[0,0,1])),IkParameterization.Type.TranslationDirection5D)
                 sol = self.gmodel.manip.FindIKSolution(ikparam,True)
 
-        if sol is None and not self.ignoreik:
-            print 'no ik solution found, abort checkgraspfn...'
-            return False
-        elif sol is None and self.ignoreik:
-		print 'no ik solution found, continue...'
-        else:
+            if sol is None:
+                print 'no ik solution found, abort checkgraspfn...'
+                return False
+
             print 'hooray, found IK solution,append:'
             print sol
             print 'grasp position:'
@@ -109,8 +104,8 @@ class FastGrasping:
             print self.gmodel.manip.GetDirection()
             print 'grasp direction:'
             print dot(Tglobalgrasp[0:3,0:3],self.gmodel.manip.GetDirection())
-	    self.count_ik_sols = self.count_ik_sols + 1
-	    print self.count_ik_sols
+            self.count_ik_sols = self.count_ik_sols + 1
+            print self.count_ik_sols
 
         if not self.ignoreik:
             jointvalues[self.gmodel.manip.GetArmIndices()] = sol
@@ -125,8 +120,8 @@ class FastGrasping:
         raise self.GraspingException((self.grasps,self.jointvalues))
 
     def computeGrasp(self,graspparameters, updateenv=True):
-        if len(graspparameters.approachrays) == 0:   # was 0.02 by default # was 0.5
-            approachrays = self.gmodel.computeBoxApproachRays(delta=0.001,normalanglerange=0) # rays to approach object
+        if len(graspparameters.approachrays) == 0:
+            approachrays = self.gmodel.computeBoxApproachRays(delta=0.001,normalanglerange=0) # rays to approach object (was 0.02/0.5 by default)
         else:
             approachrays = reshape(graspparameters.approachrays,[len(graspparameters.approachrays)/6,6])
         if len(graspparameters.standoffs) == 0:
@@ -149,14 +144,14 @@ class FastGrasping:
             dim = len(self.gmodel.manip.GetGripperIndices())
             preshapes = reshape(graspparameters.preshapes,[len(graspparameters.preshapes)/dim,dim])
         try:
-## with pre-set manip dir and checkgraspfn
+           ## with pre-set manip dir and checkgraspfn
            self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections, checkgraspfn=self.checkgraspfn,disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-## with pre-set manip dir and no checkgraspfn
-#	   self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections,disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-## with auto-set manip dir and no checkgraspfn
-#	   self.gmodel.generate	(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, disableallbodies=False,updateenv=updateenv,graspingnoise=0)
-## with auto-set manip dir and checkgraspfn
-#	   self.gmodel.generate	(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, checkgraspfn=self.checkgraspfn, disableallbodies=False,updateenv=updateenv,graspingnoise=0)
+           ## with pre-set manip dir and no checkgraspfn
+           # self.gmodel.generate(preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays,manipulatordirections=self.manipulatordirections,disableallbodies=False,updateenv=updateenv,graspingnoise=0)
+           ## with auto-set manip dir and no checkgraspfn
+           # self.gmodel.generate        (preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, disableallbodies=False,updateenv=updateenv,graspingnoise=0)
+           ## with auto-set manip dir and checkgraspfn
+           # self.gmodel.generate        (preshapes=preshapes,standoffs=standoffs,rolls=rolls,approachrays=approachrays, checkgraspfn=self.checkgraspfn, disableallbodies=False,updateenv=updateenv,graspingnoise=0)
            return self.grasps,self.jointvalues
         except self.GraspingException, e:
             return e.args
@@ -255,12 +250,12 @@ if __name__ == "__main__":
             if 1:#graspableobject.type == object_manipulation_msgs.msg.GraspableObject.POINT_CLUSTER:
                 target.InitFromTrimesh(trimeshFromPointCloud(graspableobject.cluster),True)
                 if len(options.mapframe) > 0:
-		    print 'set mapframe %s'%options.mapframe
+                    print 'set mapframe %s'%options.mapframe
                     (trans,rot) = listener.lookupTransform(options.mapframe, graspableobject.cluster.header.frame_id, rospy.Time(0))
                     Ttarget = matrixFromQuat([rot[3],rot[0],rot[1],rot[2]])
                     Ttarget[0:3,3] = trans
                 else:
-		    print 'didnt set any mapframe'
+                    print 'didnt set any mapframe'
                     Ttarget = eye(4)
             else:
                 raise ValueError('do not support graspable objects of type %s'%str(graspableobject.type))
@@ -308,7 +303,6 @@ if __name__ == "__main__":
                         # start planning
                         fastgrasping = FastGrasping(robot,target,ignoreik=options.ignoreik,returngrasps=options.returngrasps)
                         allgrasps,alljointvalues = fastgrasping.computeGrasp(graspparameters,updateenv=False)
-
                         if allgrasps is not None and len(allgrasps) > 0:
                             res.error_code.value = object_manipulation_msgs.msg.GraspPlanningErrorCode.SUCCESS
                             for grasp,jointvalues in izip(allgrasps,alljointvalues):
@@ -343,7 +337,7 @@ if __name__ == "__main__":
                                 #robot.SetDOFValues(rosgrasp.grasp_posture.position,indices)
                         else:
                             res.error_code.value = object_manipulation_msgs.msg.GraspPlanningErrorCode.OTHER_ERROR
-			rospy.loginfo('removing target %s'%target.GetName())
+                        rospy.loginfo('removing target %s'%target.GetName())
                         return res
                     finally:
                         with env:
