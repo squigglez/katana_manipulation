@@ -67,13 +67,12 @@ class FastGrasping:
         jointvalues = array(finalconfig[0])
         print 'preshape values:'
         print jointvalues
-        sol = None
-            #print self.ignoreik
 
         if self.ignoreik:
             if self.gmodel.manip.CheckEndEffectorCollision(Tglobalgrasp):
                 print 'end-effector collision'
                 return False
+
         else:
             if self.gmodel.manip.GetIkSolver().Supports(IkParameterization.Type.Transform6D):
                 print 'hehe lets do 6D ik'
@@ -94,6 +93,8 @@ class FastGrasping:
                 print 'no ik solution found, abort checkgraspfn...'
                 return False
 
+            jointvalues[self.gmodel.manip.GetArmIndices()] = sol
+
             print 'hooray, found IK solution,append:'
             print sol
             print 'grasp position:'
@@ -107,11 +108,6 @@ class FastGrasping:
             self.count_ik_sols = self.count_ik_sols + 1
             print self.count_ik_sols
 
-        if not self.ignoreik:
-            jointvalues[self.gmodel.manip.GetArmIndices()] = sol
-        else:
-            jointvalues[self.gmodel.manip.GetArmIndices()] = None
-
         self.jointvalues.append(jointvalues)
         self.grasps.append(grasp)
         if len(self.jointvalues) < self.returngrasps:
@@ -124,19 +120,19 @@ class FastGrasping:
             approachrays = self.gmodel.computeBoxApproachRays(delta=0.001,normalanglerange=0) # rays to approach object (was 0.02/0.5 by default)
         else:
             approachrays = reshape(graspparameters.approachrays,[len(graspparameters.approachrays)/6,6])
-       
+
         Ttarget = self.gmodel.target.GetTransform()
         N = len(approachrays)
         gapproachrays = c_[dot(approachrays[:,0:3],transpose(Ttarget[0:3,0:3]))+tile(Ttarget[0:3,3],(N,1)),dot(approachrays[:,3:6],transpose(Ttarget[0:3,0:3]))]
         self.approachgraphs = [env.plot3(points=gapproachrays[:,0:3],pointsize=5,colors=array((1,0,0))),
                                env.drawlinelist(points=reshape(c_[gapproachrays[:,0:3],gapproachrays[:,0:3]+0.005*gapproachrays[:,3:6]],(2*N,3)),linewidth=4,colors=array((1,0,0,1)))]
-        
+
         if len(graspparameters.standoffs) == 0:
             standoffs = [0.01]
         else:
             standoffs = graspparameters.standoffs
         if len(graspparameters.rolls) == 0:
-            rolls = arange(0,2*pi,2*pi) # 0, 2pi, 0.5pi
+            rolls = [0.0]  # was before: arange(0,2*pi,0.5*pi)
             print rolls
         else:
             rolls = graspparameters.rolls
@@ -359,6 +355,13 @@ if __name__ == "__main__":
         s = rospy.Service('GraspPlanning', object_manipulation_msgs.srv.GraspPlanning, GraspPlanning)
         sparameters = rospy.Service('SetGraspParameters', orrosplanning.srv.SetGraspParameters, SetGraspParameters)
         print 'openrave %s service ready'%s.resolved_name
+
+        # have to do this manually because running linkstatistics when viewer is enabled segfaults things
+        if env.GetViewer() is None:
+            if options._viewer is None:
+                env.SetViewer('qtcoin')
+            elif len(options._viewer) > 0:
+                env.SetViewer(options._viewer)
 
         if options.ipython:
             from IPython.Shell import IPShellEmbed
