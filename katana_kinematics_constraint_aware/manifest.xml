@@ -37,6 +37,8 @@
   <depend package="rospy"/>
   <depend package="orrosplanning"/>
   <depend package="kinematics_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="motion_planning_msgs"/>
   <depend package="urdf"/>
   <depend package="pluginlib"/>
   <depend package="kinematics_base"/>
@@ -49,5 +51,4 @@
   </export>
 
 </package>
-
 
