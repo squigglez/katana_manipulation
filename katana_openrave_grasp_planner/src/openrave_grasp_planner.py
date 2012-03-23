@@ -58,8 +58,8 @@ class FastGrasping:
 
     def checkgraspfn(self, contacts,finalconfig,grasp,info):
         print 'call checkgraspfn...'
-		#print grasp
-		#print info
+        #print grasp
+        #print info
         # check if grasp can be reached by robot
         Tglobalgrasp = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
         # have to set the preshape since the current robot is at the final grasp!

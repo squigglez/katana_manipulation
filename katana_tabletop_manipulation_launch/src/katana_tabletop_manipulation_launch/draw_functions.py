@@ -218,13 +218,13 @@ class DrawFunctions():
             if grasp_num == 0:
                 marker.scale.x = 0.015
                 marker.scale.y = 0.025
-		marker.scale.z = 0.025
+                marker.scale.z = 0.025
                 length_fact = 1.5
 
             else:
                 marker.scale.x = 0.01
                 marker.scale.y = 0.015
-		marker.scale.z = 0.015
+                marker.scale.z = 0.015
                 length_fact = 1.0
 
             orientation = grasp.orientation
@@ -233,8 +233,8 @@ class DrawFunctions():
             start = [grasp.position.x, grasp.position.y, grasp.position.z]
             x_end = list(mat[:,0][0:3]*.05*length_fact + scipy.array(start))
             y_end = list(mat[:,1][0:3]*.02*length_fact + scipy.array(start))
-	    z_end = list(mat[:,2][0:3]*.02*length_fact + scipy.array(start))
-	    print 'hossa'
+            z_end = list(mat[:,2][0:3]*.02*length_fact + scipy.array(start))
+            print 'hossa'
             print grasp.position
             print grasp.orientation
             marker.id = grasp_num*4
@@ -250,12 +250,12 @@ class DrawFunctions():
             marker.color.b = 0.0
             self.marker_pub.publish(marker)
             marker.id = grasp_num*4+2
-	    marker.points = [Point(*start), Point(*z_end)]
+            marker.points = [Point(*start), Point(*z_end)]
             marker.color.r = 0.0
             marker.color.g = 0.0
             marker.color.b = 1.0
-	    self.marker_pub.publish(marker)
-	    marker.id = grasp_num*4+3
+            self.marker_pub.publish(marker)
+            marker.id = grasp_num*4+3
             if pause:
                 print "press enter to continue"
                 raw_input()

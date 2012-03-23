@@ -184,7 +184,7 @@ class InterpolatedIKService:
     ##callback for get_interpolated_ik_motion_plan service
     def interpolated_ik_motion_planner_callback(self, req):
 
-	print 'calling IIK:'
+        print 'calling IIK:'
         #names and angles for the joints in their desired order
         joint_names = req.motion_plan_request.start_state.joint_state.name
         start_angles = req.motion_plan_request.start_state.joint_state.position
@@ -290,10 +290,10 @@ class InterpolatedIKService:
         if link_padding == []:
             link_padding = None
 
-	print 'start pose'
-	print start_pose_stamped
-	print 'goal pose'
-	print goal_pose_stamped
+    print 'start pose'
+    print start_pose_stamped
+    print 'goal pose'
+    print goal_pose_stamped
 
         #RUN!  Check the Cartesian path for consistent, non-colliding IK solutions
         (trajectory, error_codes) = self.ik_utils.check_cartesian_path(start_pose_stamped, \
@@ -362,7 +362,7 @@ class InterpolatedIKService:
 #         rospy.loginfo("")
 #         for ind in range(len(trajectory)):
 #             rospy.loginfo("time: " + "%5.3f  "%times[ind] + "vels: " + self.pplist(vels[ind]))
-	print res
+        print res
         return res
 
 
