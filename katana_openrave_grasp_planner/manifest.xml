@@ -1,11 +1,11 @@
 <package>
-  <description brief="katana_openrave_grasp_planner">
+  <description brief="A grasp planner based on OpenRAVE for the Katana arm.">
 
-     katana_openrave_grasp_planner
+     A grasp planner based on OpenRAVE for the Katana arm.
 
   </description>
-  <author>hdeeken</author>
-  <license>BSD</license>
+  <author>Henning Deeken</author>
+  <license>Apache</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_openrave_grasp_planner</url>
   <export>

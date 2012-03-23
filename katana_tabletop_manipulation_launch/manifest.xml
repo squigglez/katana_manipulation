@@ -1,10 +1,10 @@
 <package>
-  <description brief="katana_tabletop_manipulation_launch">
+  <description brief="Config package with top-level launch files for tabletop manipulation on the Katana.">
 
-     katana_tabletop_manipulation_launch
+    Config package with top-level launch files for tabletop manipulation on the Katana.
 
   </description>
-  <author>hdeeken</author>
+  <author>Henning Deeken</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_tabletop_manipulation_launch</url>

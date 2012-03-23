@@ -1,10 +1,12 @@
 <package>
-  <description brief="katana_object_manipulator">
+  <description brief="core functionality for pickup and place tasks for the Katana arm">
 
-     katana_object_manipulator
+     Core functionality for pickup and place tasks. Services Pickup
+     and Place action goals. Copied from object_manipulator by 
+     Matei Ciocarlie and adapted to Katana arm.
 
   </description>
-  <author>hdeeken</author>
+  <author>Henning Deeken</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_object_manipulator</url>

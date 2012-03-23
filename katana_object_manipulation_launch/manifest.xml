@@ -1,10 +1,10 @@
 <package>
-  <description brief="katana_object_manipulation_launch">
+  <description brief="Config package for Katana object_manipulator">
 
-     katana_object_manipulation_launch
+     Config package for Katana object_manipulator
 
   </description>
-  <author>hdeeken</author>
+  <author>Henning Deeken</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_object_manipulation_launch</url>
