@@ -6,7 +6,7 @@ hand_description:
     attach_link: katana_r_finger_link
     hand_group_name: end_effector
     arm_group_name: arm
-    hand_database_name: KATANA_40_6M90A_GRIPPER
+    hand_database_name: KATANA_450_6M90A_GRIPPER
     hand_joints: [katana_r_finger_joint,katana_l_finger_joint]
     hand_touch_links: [katana_gripper_link, katana_r_finger_link, katana_l_finger_link]
     hand_fingertip_links: [katana_r_finger_link, katana_l_finger_link]
