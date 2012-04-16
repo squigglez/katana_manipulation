@@ -290,10 +290,10 @@ class InterpolatedIKService:
         if link_padding == []:
             link_padding = None
 
-    print 'start pose'
-    print start_pose_stamped
-    print 'goal pose'
-    print goal_pose_stamped
+        print 'start pose'
+        print start_pose_stamped
+        print 'goal pose'
+        print goal_pose_stamped
 
         #RUN!  Check the Cartesian path for consistent, non-colliding IK solutions
         (trajectory, error_codes) = self.ik_utils.check_cartesian_path(start_pose_stamped, \

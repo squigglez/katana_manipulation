@@ -65,22 +65,21 @@ class IKUtilities:
     #if wait_for_services = 0, you must call check_services_and_get_ik_info externally before running any of the IK/FK functions
     def __init__(self,tf_listener = None, wait_for_services = 1):
 
-    # set the base_link frame
-
-    self.base_link = rospy.get_param('/katana_interpolated_ik_motion_planner/base_link_frame', 'katana_base_link')
-    self.num_dof = rospy.get_param('/katana_interpolated_ik_motion_planner/num_dof', 5)
-
-        #If collision_aware_ik is set to 0, then collision-aware IK is disabled
-    self.perception_running = rospy.get_param('/katana_interpolated_ik_motion_planner/collision_aware_ik', 1)
-
-    self.get_ik_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_ik_service_name', '/get_ik')
-    self.get_constraint_aware_ik_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_constraint_aware_ik_service_name', '/get_constraint_aware_ik')
+        # set the base_link frame
+        self.base_link = rospy.get_param('/katana_interpolated_ik_motion_planner/base_link_frame', 'katana_base_link')
+        self.num_dof = rospy.get_param('/katana_interpolated_ik_motion_planner/num_dof', 5)
+    
+            #If collision_aware_ik is set to 0, then collision-aware IK is disabled
+        self.perception_running = rospy.get_param('/katana_interpolated_ik_motion_planner/collision_aware_ik', 1)
+    
+        self.get_ik_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_ik_service_name', '/get_ik')
+        self.get_constraint_aware_ik_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_constraint_aware_ik_service_name', '/get_constraint_aware_ik')
         self.get_ik_solver_info_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_ik_solver_info_service_name', '/get_ik_solver_info')
-    self.get_fk_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_fk_service_name', '/get_fk')
-    self.get_state_validity_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_state_validity_service_name', '/environment_server/get_state_validity')
-
-    self.default_max_vel = rospy.get_param('/katana_interpolated_ik_motion_planner/default_max_vel', 0.2)
-    self.default_max_acc = rospy.get_param('/katana_interpolated_ik_motion_planner/default_max_acc', 0.5)
+        self.get_fk_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_fk_service_name', '/get_fk')
+        self.get_state_validity_service_name = rospy.get_param('/katana_interpolated_ik_motion_planner/get_state_validity_service_name', '/environment_server/get_state_validity')
+    
+        self.default_max_vel = rospy.get_param('/katana_interpolated_ik_motion_planner/default_max_vel', 0.2)
+        self.default_max_acc = rospy.get_param('/katana_interpolated_ik_motion_planner/default_max_acc', 0.5)
 
         self._ik_service = rospy.ServiceProxy(self.get_ik_service_name, GetPositionIK)
         if self.perception_running:
