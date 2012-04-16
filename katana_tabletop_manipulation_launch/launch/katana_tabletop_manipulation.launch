@@ -1,14 +1,22 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- Use the remote database client; this won't work and produce the following error:
 
-  <!-- alternative option: database server running on a local machine -->
-  <param name="/household_objects_database/database_host" value="localhost"/>
+           Could not retrieve list of models from database (/tabletop_object_recognition)
+
+       That only means that CAD models won't be available; grasping unknown
+       objects (just represented by a point cloud) still works.  -->
+  <include file="$(find household_objects_database)/launch/objects_database_remote_client.launch"/>
+
+  <!-- alternative option: database server running on a local machine; you need
+       to install a Postgresql server and download the database for this to work -->
+  <!--   <param name="/household_objects_database/database_host" value="localhost"/>
   <param name="/household_objects_database/database_port" value="5432"/>
   <param name="/household_objects_database/database_user" value="willow"/>
   <param name="/household_objects_database/database_pass" value="willow"/>
   <param name="/household_objects_database/database_name" value="household_objects"/>
   <node pkg="household_objects_database" name="objects_database_node" type="objects_database_node"
-	respawn="true" output="screen"/>
+     respawn="true" output="screen"/> -->
 
   <!-- manipulation prerequisites -->
   <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation_prerequisites.launch" />
@@ -37,7 +45,5 @@
 
   <node pkg="katana_tabletop_collision_map_processing" name="tabletop_collision_map_processing"
         type="tabletop_collision_map_processing_node" respawn="true" output="screen">
-
   </node>
-
 </launch>
