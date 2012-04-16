@@ -65,17 +65,6 @@ def mat_to_point_cloud(mat, frame_id):
         pc.points.append(point)
     return pc
 
-##convert a 4xn scipy matrix (x y z 1) to a point cloud
-def mat_to_point_cloud(mat, frame_id):
-    pc = PointCloud()
-    pc.header.frame_id = frame_id
-    for n in range(mat.shape[1]):
-        column = mat[:,n]
-        point = Point()
-        point.x, point.y, point.z = column[0,0], column[1,0], column[2,0]
-        pc.points.append(point)
-    return pc
-
 
 ##transform a PointCloud to be a 4xn scipy matrix (x y z 1) in a new frame
 def transform_point_cloud(tf_listener, point_cloud, frame):
