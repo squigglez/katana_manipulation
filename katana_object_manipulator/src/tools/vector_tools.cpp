@@ -31,17 +31,17 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <motion_planning_msgs/OrderedCollisionOperations.h>
+#include <arm_navigation_msgs/OrderedCollisionOperations.h>
 
 #include "object_manipulator/tools/vector_tools.h"
 
 namespace object_manipulator {
 
-motion_planning_msgs::OrderedCollisionOperations
-concat(const motion_planning_msgs::OrderedCollisionOperations &o1,
-       const motion_planning_msgs::OrderedCollisionOperations &o2)
+arm_navigation_msgs::OrderedCollisionOperations
+concat(const arm_navigation_msgs::OrderedCollisionOperations &o1,
+       const arm_navigation_msgs::OrderedCollisionOperations &o2)
 {
-  motion_planning_msgs::OrderedCollisionOperations o;
+  arm_navigation_msgs::OrderedCollisionOperations o;
   o.collision_operations = concat(o1.collision_operations, o2.collision_operations);
   return o;
 }

@@ -40,7 +40,7 @@
 //#include <demo_synchronizer/synchronizer_client.h>
 
 using object_manipulation_msgs::PlaceLocationResult;
-using motion_planning_msgs::ArmNavigationErrorCodes;
+using arm_navigation_msgs::ArmNavigationErrorCodes;
 
 namespace object_manipulator {
 
@@ -106,12 +106,12 @@ geometry_msgs::PoseStamped PlaceExecutor::computeGripperPose(geometry_msgs::Pose
 */
 PlaceLocationResult PlaceExecutor::retreat(const object_manipulation_msgs::PlaceGoal &place_goal)
 {
-  motion_planning_msgs::OrderedCollisionOperations ord;
-  motion_planning_msgs::CollisionOperation coll;
+  arm_navigation_msgs::OrderedCollisionOperations ord;
+  arm_navigation_msgs::CollisionOperation coll;
   //disable collision between gripper and object
   coll.object1 = handDescription().gripperCollisionName(place_goal.arm_name);
   coll.object2 = place_goal.collision_object_name;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.push_back(coll);
   //disable collision between gripper and table
   coll.object2 = place_goal.collision_support_surface_name;
@@ -120,7 +120,7 @@ PlaceLocationResult PlaceExecutor::retreat(const object_manipulation_msgs::Place
                                     place_goal.additional_collision_operations.collision_operations);
 
   //zero padding on fingertip links; shouldn't matter much due to collisions disabled above
-  std::vector<motion_planning_msgs::LinkPadding> link_padding
+  std::vector<arm_navigation_msgs::LinkPadding> link_padding
     = concat(MechanismInterface::fingertipPadding(place_goal.arm_name, 0.0),
              place_goal.additional_link_padding);
 
@@ -167,11 +167,11 @@ PlaceExecutor::prepareInterpolatedTrajectories(const object_manipulation_msgs::P
   }
 
   //disable collisions between grasped object and table
-  motion_planning_msgs::OrderedCollisionOperations ord;
-  motion_planning_msgs::CollisionOperation coll;
+  arm_navigation_msgs::OrderedCollisionOperations ord;
+  arm_navigation_msgs::CollisionOperation coll;
   coll.object1 = place_goal.collision_object_name;
   coll.object2 = place_goal.collision_support_surface_name;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.push_back(coll);
   if (place_goal.allow_gripper_support_collision)
   {
@@ -183,10 +183,10 @@ PlaceExecutor::prepareInterpolatedTrajectories(const object_manipulation_msgs::P
                                     place_goal.additional_collision_operations.collision_operations);
 
   //zero padding on fingertip links
-  std::vector<motion_planning_msgs::LinkPadding> link_padding =
+  std::vector<arm_navigation_msgs::LinkPadding> link_padding =
     MechanismInterface::fingertipPadding(place_goal.arm_name, 0.0);
   // padding on grasped object, which is still attached to the gripper
-  motion_planning_msgs::LinkPadding padding;
+  arm_navigation_msgs::LinkPadding padding;
   padding.link_name = handDescription().attachedName(place_goal.arm_name);
   padding.padding = place_goal.place_padding;
   link_padding.push_back(padding);
@@ -244,7 +244,7 @@ PlaceExecutor::prepareInterpolatedTrajectories(const object_manipulation_msgs::P
   //disable all collisions on grasped object, since we are no longer holding it during the retreat
   coll.object1 = place_goal.collision_object_name;
   coll.object2 = coll.COLLISION_SET_ALL;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.clear();
   ord.collision_operations.push_back(coll);
   if (place_goal.allow_gripper_support_collision)
@@ -417,7 +417,7 @@ PlaceLocationResult PlaceExecutor::place(const object_manipulation_msgs::PlaceGo
 /*! Right now we can only deal with a single orientation constraint. This function checks if the
  constraints have additional stuff inside that we can not deal with.
 */
-bool PlaceExecutor::constraintsUnderstandable(const motion_planning_msgs::Constraints &constraints)
+bool PlaceExecutor::constraintsUnderstandable(const arm_navigation_msgs::Constraints &constraints)
 {
   if(constraints.position_constraints.empty() && constraints.orientation_constraints.empty() &&
      constraints.joint_constraints.empty() && constraints.visibility_constraints.empty())

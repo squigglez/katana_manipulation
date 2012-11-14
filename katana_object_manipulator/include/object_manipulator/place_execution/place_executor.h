@@ -98,7 +98,7 @@ protected:
     retreat(const object_manipulation_msgs::PlaceGoal &place_goal);
 
   //! Checks if the constraints are of the type that we can handle for the moment
-  bool constraintsUnderstandable(const motion_planning_msgs::Constraints &constraints);
+  bool constraintsUnderstandable(const arm_navigation_msgs::Constraints &constraints);
 
   //! Goes from the pre-place location to the place location
   virtual object_manipulation_msgs::PlaceLocationResult

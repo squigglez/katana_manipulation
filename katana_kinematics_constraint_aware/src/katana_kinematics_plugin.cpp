@@ -225,7 +225,7 @@ bool KatanaKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 
 void KatanaKinematicsPlugin::desiredPoseCallback(const std::vector<double>& ik_seed_state,
                                                  const geometry_msgs::Pose& ik_pose,
-                                                 motion_planning_msgs::ArmNavigationErrorCodes& error_code)
+                                                 arm_navigation_msgs::ArmNavigationErrorCodes& error_code)
 {
 
   int int_error_code;
@@ -233,23 +233,23 @@ void KatanaKinematicsPlugin::desiredPoseCallback(const std::vector<double>& ik_s
   desiredPoseCallback_(ik_pose, ik_seed_state, int_error_code);
 
   if (int_error_code)
-    error_code.val = motion_planning_msgs::ArmNavigationErrorCodes::SUCCESS;
+    error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS;
   else
-    error_code.val = motion_planning_msgs::ArmNavigationErrorCodes::NO_IK_SOLUTION;
+    error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::NO_IK_SOLUTION;
 }
 
 void KatanaKinematicsPlugin::jointSolutionCallback(const std::vector<double>& solution,
                                                    const geometry_msgs::Pose& ik_pose,
-                                                   motion_planning_msgs::ArmNavigationErrorCodes& error_code)
+                                                   arm_navigation_msgs::ArmNavigationErrorCodes& error_code)
 {
   int int_error_code;
 
   solutionCallback_(ik_pose, solution, int_error_code);
 
   if (int_error_code > 0)
-    error_code.val = motion_planning_msgs::ArmNavigationErrorCodes::SUCCESS;
+    error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS;
   else
-    error_code.val = motion_planning_msgs::ArmNavigationErrorCodes::NO_IK_SOLUTION;
+    error_code.val = arm_navigation_msgs::ArmNavigationErrorCodes::NO_IK_SOLUTION;
 }
 
 bool KatanaKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
@@ -275,7 +275,7 @@ bool KatanaKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
   desiredPoseCallback_ = desired_pose_callback;
   solutionCallback_ = solution_callback;
 
-  motion_planning_msgs::ArmNavigationErrorCodes error_code;
+  arm_navigation_msgs::ArmNavigationErrorCodes error_code;
 
   // perform IK and check for callback suitability
 

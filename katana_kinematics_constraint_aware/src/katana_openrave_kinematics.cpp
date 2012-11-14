@@ -43,12 +43,12 @@
 #include <kinematics_msgs/GetConstraintAwarePositionIK.h>
 #include <kinematics_msgs/GetPositionIK.h>
 #include <kinematics_msgs/GetKinematicSolverInfo.h>
-#include <motion_planning_msgs/JointLimits.h>
+#include <arm_navigation_msgs/JointLimits.h>
 #include <orrosplanning/IK.h>
 
 ros::ServiceClient client_;
 std::vector<std::string> joint_names_;
-std::vector<motion_planning_msgs::JointLimits> joint_limits_;
+std::vector<arm_navigation_msgs::JointLimits> joint_limits_;
 
 ros::ServiceServer ikService;
 ros::ServiceServer infoService;

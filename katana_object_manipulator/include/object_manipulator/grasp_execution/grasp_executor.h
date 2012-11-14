@@ -80,15 +80,15 @@ class GraspExecutor
 			     trajectory_msgs::JointTrajectory &lift_trajectory);
 
   //! Collision operations to be used when planning the lift motion
-  motion_planning_msgs::OrderedCollisionOperations
+  arm_navigation_msgs::OrderedCollisionOperations
     collisionOperationsForLift(const object_manipulation_msgs::PickupGoal &pickup_goal);
 
   //! Dynamic link padding to be used when planning the lift motion
-  std::vector<motion_planning_msgs::LinkPadding>
+  std::vector<arm_navigation_msgs::LinkPadding>
     linkPaddingForLift(const object_manipulation_msgs::PickupGoal &pickup_goal);
 
   //! Helper function for setting padding on fingertips
-  std::vector<motion_planning_msgs::LinkPadding>
+  std::vector<arm_navigation_msgs::LinkPadding>
     fingertipPadding(const object_manipulation_msgs::PickupGoal &pickup_goal, double pad);
 
   //! Performs an initial check to see if the grasp is valid and generates information needed to execute it

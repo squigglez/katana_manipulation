@@ -69,7 +69,7 @@ void PickAndPlaceDemo::loop()
   names[3] = "katana_motor4_lift_joint";
   names[4] = "katana_motor5_wrist_roll_joint";
 
-  std::vector<motion_planning_msgs::JointConstraint> joint_constraints(NUM_JOINTS);
+  std::vector<arm_navigation_msgs::JointConstraint> joint_constraints(NUM_JOINTS);
 
   for (size_t i = 0; i < NUM_JOINTS; ++i)
   {
@@ -139,9 +139,9 @@ void PickAndPlaceDemo::loop()
   }
 }
 
-bool PickAndPlaceDemo::move_to_joint_goal(std::vector<motion_planning_msgs::JointConstraint> joint_constraints)
+bool PickAndPlaceDemo::move_to_joint_goal(std::vector<arm_navigation_msgs::JointConstraint> joint_constraints)
 {
-  move_arm_msgs::MoveArmGoal goal;
+  arm_navigation_msgs::MoveArmGoal goal;
 
   goal.motion_plan_request.group_name = "arm";
   goal.motion_plan_request.num_planning_attempts = 1;
@@ -228,7 +228,7 @@ bool PickAndPlaceDemo::send_gripper_action(int32_t goal_type)
 bool PickAndPlaceDemo::make_static_collision_map() {
   ROS_INFO("Making static collision map");
 
-  collision_environment_msgs::MakeStaticCollisionMapGoal goal;
+  arm_navigation_msgs::MakeStaticCollisionMapGoal goal;
   goal.cloud_source = "tilt_scan_cloud_filtered";
   goal.number_of_clouds = 1;
 

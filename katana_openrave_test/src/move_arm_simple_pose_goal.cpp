@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <ompl/util/RandomNumbers.h>
-#include <move_arm_msgs/MoveArmAction.h>
-#include <move_arm_msgs/utils.h>
+#include <arm_navigation_msgs/MoveArmAction.h>
+#include <arm_navigation_msgs/utils.h>
 #include <geometry_msgs/Pose.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
@@ -10,12 +10,12 @@ int counter;
 int success_counter;
 
 void move_to_pose(geometry_msgs::Pose & desired_pose,
-                  actionlib::SimpleActionClient<move_arm_msgs::MoveArmAction> & move_arm)
+                  actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> & move_arm)
 {
 
   counter++;
 
-  motion_planning_msgs::SimplePoseConstraint simple_pose_constraint;
+  arm_navigation_msgs::SimplePoseConstraint simple_pose_constraint;
 
   simple_pose_constraint.header.frame_id = "katana_base_link";
 
@@ -39,7 +39,7 @@ void move_to_pose(geometry_msgs::Pose & desired_pose,
   // simple_pose_constraint.orientation_constraint_type =  1; //LINK_FRAME
 
 
-  move_arm_msgs::MoveArmGoal goal;
+  arm_navigation_msgs::MoveArmGoal goal;
 
   goal.motion_plan_request.group_name = "arm";
   goal.motion_plan_request.num_planning_attempts = 1;
@@ -47,7 +47,7 @@ void move_to_pose(geometry_msgs::Pose & desired_pose,
   goal.planner_service_name = std::string("ompl_planning/plan_kinematic_path");
   goal.motion_plan_request.allowed_planning_time = ros::Duration(15.0);
 
-  move_arm_msgs::addGoalConstraintToMoveArmGoal(simple_pose_constraint, goal);
+  arm_navigation_msgs::addGoalConstraintToMoveArmGoal(simple_pose_constraint, goal);
 
   bool finished_within_time = false;
 
@@ -144,7 +144,7 @@ void move_to_pose(geometry_msgs::Pose & desired_pose,
     ros::init(argc, argv, "move_arm_pose_goal_test");
     ros::NodeHandle nh;
 
-    actionlib::SimpleActionClient<move_arm_msgs::MoveArmAction> move_arm("move_arm", true);
+    actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm("move_arm", true);
     move_arm.waitForServer();
     ROS_INFO("Connected to server");
 

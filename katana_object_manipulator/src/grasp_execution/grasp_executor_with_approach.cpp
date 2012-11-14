@@ -41,19 +41,19 @@
 //#include <demo_synchronizer/synchronizer_client.h>
 
 using object_manipulation_msgs::GraspResult;
-using motion_planning_msgs::ArmNavigationErrorCodes;
+using arm_navigation_msgs::ArmNavigationErrorCodes;
 
 namespace object_manipulator {
 
 /*! Disable collisions between end-effector and target */
-motion_planning_msgs::OrderedCollisionOperations
+arm_navigation_msgs::OrderedCollisionOperations
 GraspExecutorWithApproach::collisionOperationsForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal)
 {
-  motion_planning_msgs::OrderedCollisionOperations ord;
-  motion_planning_msgs::CollisionOperation coll;
+  arm_navigation_msgs::OrderedCollisionOperations ord;
+  arm_navigation_msgs::CollisionOperation coll;
   coll.object1 = handDescription().gripperCollisionName(pickup_goal.arm_name);
   coll.object2 = pickup_goal.collision_object_name;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.push_back(coll);
   if (pickup_goal.allow_gripper_support_collision)
   {
@@ -76,7 +76,7 @@ GraspExecutorWithApproach::collisionOperationsForGrasp(const object_manipulation
 }
 
 /*! Zero padding on fingertip links */
-std::vector<motion_planning_msgs::LinkPadding>
+std::vector<arm_navigation_msgs::LinkPadding>
 GraspExecutorWithApproach::linkPaddingForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal)
 {
 	ROS_INFO("Setting FingertipPadding to zero");
@@ -230,12 +230,12 @@ GraspExecutorWithApproach::executeGrasp(const object_manipulation_msgs::PickupGo
 */
 GraspResult GraspExecutorWithApproach::retreat(const object_manipulation_msgs::PickupGoal &pickup_goal)
 {
-  motion_planning_msgs::OrderedCollisionOperations ord;
-  motion_planning_msgs::CollisionOperation coll;
+  arm_navigation_msgs::OrderedCollisionOperations ord;
+  arm_navigation_msgs::CollisionOperation coll;
   //disable collision between gripper and object
   coll.object1 = handDescription().gripperCollisionName(pickup_goal.arm_name);
   coll.object2 = pickup_goal.collision_object_name;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.push_back(coll);
   //disable collision between gripper and table
   coll.object2 = pickup_goal.collision_support_surface_name;

@@ -40,19 +40,19 @@
 #include "object_manipulator/tools/vector_tools.h"
 
 using object_manipulation_msgs::GraspResult;
-using motion_planning_msgs::ArmNavigationErrorCodes;
+using arm_navigation_msgs::ArmNavigationErrorCodes;
 
 namespace object_manipulator {
 
 /*! Disables collision between gripper and target */
-motion_planning_msgs::OrderedCollisionOperations
+arm_navigation_msgs::OrderedCollisionOperations
 GraspExecutor::collisionOperationsForLift(const object_manipulation_msgs::PickupGoal &pickup_goal)
 {
-  motion_planning_msgs::OrderedCollisionOperations ord;
-  motion_planning_msgs::CollisionOperation coll;
+  arm_navigation_msgs::OrderedCollisionOperations ord;
+  arm_navigation_msgs::CollisionOperation coll;
   coll.object1 = handDescription().gripperCollisionName(pickup_goal.arm_name);
   coll.object2 = pickup_goal.collision_object_name;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.push_back(coll);
   if (pickup_goal.allow_gripper_support_collision)
   {
@@ -65,7 +65,7 @@ GraspExecutor::collisionOperationsForLift(const object_manipulation_msgs::Pickup
 }
 
 /*! Zero padding on fingertip links */
-std::vector<motion_planning_msgs::LinkPadding>
+std::vector<arm_navigation_msgs::LinkPadding>
 GraspExecutor::linkPaddingForLift(const object_manipulation_msgs::PickupGoal &pickup_goal)
 {
   return concat(MechanismInterface::fingertipPadding(pickup_goal.arm_name, 0.0),

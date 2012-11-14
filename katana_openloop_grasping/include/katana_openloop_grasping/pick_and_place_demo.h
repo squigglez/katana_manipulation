@@ -28,12 +28,12 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 
-#include <move_arm_msgs/MoveArmAction.h>
+#include <arm_navigation_msgs/MoveArmAction.h>
 
 #include <object_manipulation_msgs/GraspHandPostureExecutionAction.h>
 #include <object_manipulation_msgs/GraspStatus.h>
 
-#include <collision_environment_msgs/MakeStaticCollisionMapAction.h>
+#include <arm_navigation_msgs/MakeStaticCollisionMapAction.h>
 
 typedef object_manipulation_msgs::GraspHandPostureExecutionGoal GHPEG;
 
@@ -55,12 +55,12 @@ public:
 
 private:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionClient<move_arm_msgs::MoveArmAction> move_arm_;
+  actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;
   actionlib::SimpleActionClient<object_manipulation_msgs::GraspHandPostureExecutionAction> gripper_;
-  actionlib::SimpleActionClient<collision_environment_msgs::MakeStaticCollisionMapAction> make_static_collision_map_;
+  actionlib::SimpleActionClient<arm_navigation_msgs::MakeStaticCollisionMapAction> make_static_collision_map_;
   ros::ServiceClient grasp_status_client_;
 
-  bool move_to_joint_goal(std::vector<motion_planning_msgs::JointConstraint> joint_constraints);
+  bool move_to_joint_goal(std::vector<arm_navigation_msgs::JointConstraint> joint_constraints);
   bool send_gripper_action(int32_t goal_type);
   bool make_static_collision_map();
   bool query_grasp_status();

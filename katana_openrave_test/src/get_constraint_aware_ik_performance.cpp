@@ -5,7 +5,7 @@
 #include <ompl/util/RandomNumbers.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
-#include <motion_planning_msgs/DisplayTrajectory.h>
+#include <arm_navigation_msgs/DisplayTrajectory.h>
 
 int main(int argc, char **argv)
 {
@@ -22,7 +22,7 @@ int main(int argc, char **argv)
   ros::service::waitForService("katana_constraint_aware_kinematics/get_ik_solver_info");
 
   ros::Publisher pub =
-      rh.advertise<motion_planning_msgs::DisplayTrajectory> ("planned_robot_pose", 1000);
+      rh.advertise<arm_navigation_msgs::DisplayTrajectory> ("planned_robot_pose", 1000);
   ros::ServiceClient ik_client_ =
       rh.serviceClient<kinematics_msgs::GetConstraintAwarePositionIK> (ik_service);
   ros::ServiceClient query_client =
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   kinematics_msgs::GetKinematicSolverInfo::Response response;
 
   sensor_msgs::JointState initialState;
-  motion_planning_msgs::DisplayTrajectory planned_robot_pose;
+  arm_navigation_msgs::DisplayTrajectory planned_robot_pose;
 
   if (query_client.call(request, response))
   {

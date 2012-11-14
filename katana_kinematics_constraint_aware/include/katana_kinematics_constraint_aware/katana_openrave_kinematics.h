@@ -37,7 +37,7 @@
 #include <kinematics_msgs/GetPositionFK.h>
 #include <kinematics_msgs/GetPositionIK.h>
 #include <kinematics_msgs/GetKinematicSolverInfo.h>
-#include <motion_planning_msgs/ArmNavigationErrorCodes.h>
+#include <arm_navigation_msgs/ArmNavigationErrorCodes.h>
 #include <orrosplanning/IK.h>
 #include <urdf/model.h>
 #include <kinematics_base/kinematics_base.h>
@@ -152,11 +152,11 @@ protected:
   boost::function<void(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_solution, int &error_code)>
                                                                                                                      solutionCallback_;
   void desiredPoseCallback(const std::vector<double>& joint_angles, const geometry_msgs::Pose& ik_pose,
-                           motion_planning_msgs::ArmNavigationErrorCodes& error_code);
+                           arm_navigation_msgs::ArmNavigationErrorCodes& error_code);
 
   void jointSolutionCallback(const std::vector<double>& joint_angles,
                                                      const geometry_msgs::Pose& ik_pose,
-                                                     motion_planning_msgs::ArmNavigationErrorCodes& error_code);
+                                                     arm_navigation_msgs::ArmNavigationErrorCodes& error_code);
 
 };
 }

@@ -105,12 +105,12 @@ ReactiveGraspExecutor::executeGrasp(const object_manipulation_msgs::PickupGoal &
 GraspResult
 ReactiveGraspExecutor::nonReactiveLift(const object_manipulation_msgs::PickupGoal &pickup_goal)
 {
-  motion_planning_msgs::OrderedCollisionOperations ord;
-  motion_planning_msgs::CollisionOperation coll;
+  arm_navigation_msgs::OrderedCollisionOperations ord;
+  arm_navigation_msgs::CollisionOperation coll;
   //disable collisions between end-effector and table
   coll.object1 = handDescription().gripperCollisionName(pickup_goal.arm_name);
   coll.object2 = pickup_goal.collision_support_surface_name;
-  coll.operation = motion_planning_msgs::CollisionOperation::DISABLE;
+  coll.operation = arm_navigation_msgs::CollisionOperation::DISABLE;
   ord.collision_operations.push_back(coll);
   //disable collisions between attached object and table
   coll.object1 = pickup_goal.collision_object_name;

@@ -48,9 +48,9 @@ inline std::vector<T> concat(const std::vector<T> &v1, const std::vector<T> &v2)
   return v;
 }
 /*
-motion_planning_msgs::OrderedCollisionOperations
-concat(const motion_planning_msgs::OrderedCollisionOperations &o1,
-       const motion_planning_msgs::OrderedCollisionOperations &o2);
+arm_navigation_msgs::OrderedCollisionOperations
+concat(const arm_navigation_msgs::OrderedCollisionOperations &o1,
+       const arm_navigation_msgs::OrderedCollisionOperations &o2);
 */
 
 

@@ -49,22 +49,22 @@
 #include <kinematics_msgs/GetConstraintAwarePositionIK.h>
 #include <kinematics_msgs/GetPositionFK.h>
 
-#include <move_arm_msgs/MoveArmAction.h>
+#include <arm_navigation_msgs/MoveArmAction.h>
 
-#include <motion_planning_msgs/GetMotionPlan.h>
-#include <motion_planning_msgs/convert_messages.h>
-#include <motion_planning_msgs/FilterJointTrajectory.h>
-#include <motion_planning_msgs/OrderedCollisionOperations.h>
+#include <arm_navigation_msgs/GetMotionPlan.h>
+#include <arm_navigation_msgs/convert_messages.h>
+#include <arm_navigation_msgs/FilterJointTrajectory.h>
+#include <arm_navigation_msgs/OrderedCollisionOperations.h>
 
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <pr2_controllers_msgs/PointHeadAction.h>
 
-#include <planning_environment_msgs/ContactInformation.h>
-#include <planning_environment_msgs/GetStateValidity.h>
+#include <arm_navigation_msgs/ContactInformation.h>
+#include <arm_navigation_msgs/GetStateValidity.h>
 
 #include <interpolated_ik_motion_planner/SetInterpolatedIKMotionPlanParams.h>
 
-#include <mapping_msgs/AttachedCollisionObject.h>
+#include <arm_navigation_msgs/AttachedCollisionObject.h>
 
 #include <object_manipulation_msgs/ReactiveGraspAction.h>
 #include <object_manipulation_msgs/ReactiveLiftAction.h>
@@ -127,7 +127,7 @@ class MechanismInterface
   MultiArmServiceWrapper<kinematics_msgs::GetPositionFK> fk_service_client_;
 
   //! Client for the Interpolated IK service
-  MultiArmServiceWrapper<motion_planning_msgs::GetMotionPlan> interpolated_ik_service_client_;
+  MultiArmServiceWrapper<arm_navigation_msgs::GetMotionPlan> interpolated_ik_service_client_;
 
   //! Client for setting the params of the Interpolated IK service
   MultiArmServiceWrapper<interpolated_ik_motion_planner::SetInterpolatedIKMotionPlanParams>
@@ -137,10 +137,10 @@ class MechanismInterface
   MultiArmServiceWrapper<object_manipulation_msgs::GraspStatus> grasp_status_client_;
 
   //! Client for service that checks state validity
-  ServiceWrapper<planning_environment_msgs::GetStateValidity> check_state_validity_client_;
+  ServiceWrapper<arm_navigation_msgs::GetStateValidity> check_state_validity_client_;
 
   //! Client for the joint trajectory normalizer service
-  ServiceWrapper<motion_planning_msgs::FilterJointTrajectory> joint_trajectory_normalizer_service_;
+  ServiceWrapper<arm_navigation_msgs::FilterJointTrajectory> joint_trajectory_normalizer_service_;
 
   //! Client for the switch controller service
   ServiceWrapper<pr2_mechanism_msgs::SwitchController> switch_controller_service_;
@@ -160,7 +160,7 @@ class MechanismInterface
   MultiArmActionWrapper<object_manipulation_msgs::ReactivePlaceAction> reactive_place_action_client_;
 
   //! Action client for move_arm
-  MultiArmActionWrapper<move_arm_msgs::MoveArmAction> move_arm_action_client_;
+  MultiArmActionWrapper<arm_navigation_msgs::MoveArmAction> move_arm_action_client_;
 
   //! Action client for executing a joint trajectory directly, without move arm
   MultiArmActionWrapper<pr2_controllers_msgs::JointTrajectoryAction> traj_action_client_;
@@ -186,22 +186,22 @@ class MechanismInterface
 
   //! Checks if a given arm state is valid; joint_values must contain values for all joints of the arm
   bool checkStateValidity(std::string arm_name, const std::vector<double> &joint_values,
-                          const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                          const std::vector<motion_planning_msgs::LinkPadding> &link_padding);
+                          const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                          const std::vector<arm_navigation_msgs::LinkPadding> &link_padding);
 
   //! Checks if a given arm state is valid with no collision operations or link paddings
   bool checkStateValidity(std::string arm_name, const std::vector<double> &joint_values)
   {
-    motion_planning_msgs::OrderedCollisionOperations empty;
-    std::vector<motion_planning_msgs::LinkPadding> also_empty;
+    arm_navigation_msgs::OrderedCollisionOperations empty;
+    std::vector<arm_navigation_msgs::LinkPadding> also_empty;
     return checkStateValidity(arm_name, joint_values, empty, also_empty);
   }
 
   //! Computes an IK solution for a desired pose
   bool getIKForPose(std::string arm_name, const geometry_msgs::PoseStamped &desired_pose,
 		    kinematics_msgs::GetConstraintAwarePositionIK::Response& ik_response,
-                    const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                    const std::vector<motion_planning_msgs::LinkPadding> &link_padding);
+                    const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                    const std::vector<arm_navigation_msgs::LinkPadding> &link_padding);
 
   //! Computes an FK solution
   bool getFK(std::string arm_name,
@@ -216,8 +216,8 @@ class MechanismInterface
 			float desired_trajectory_length,
 			const std::vector<double> &seed_joint_position,
 			const sensor_msgs::JointState &joint_state,
-			const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-			const std::vector<motion_planning_msgs::LinkPadding> &link_padding,
+			const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+			const std::vector<arm_navigation_msgs::LinkPadding> &link_padding,
 			bool reverse_trajectory,
 			trajectory_msgs::JointTrajectory &trajectory,
 			float &actual_trajectory_length);
@@ -236,23 +236,23 @@ class MechanismInterface
 
   //! Uses  move arm to get to the desired set of joint values
   bool attemptMoveArmToGoal(std::string arm_name, const std::vector<double> &desired_joint_values,
-                            const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                            const std::vector<motion_planning_msgs::LinkPadding> &link_padding);
+                            const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                            const std::vector<arm_navigation_msgs::LinkPadding> &link_padding);
 
-  void modifyMoveArmGoal(move_arm_msgs::MoveArmGoal &move_arm_goal,
-                         motion_planning_msgs::ArmNavigationErrorCodes &error_code,
-                         std::vector<planning_environment_msgs::ContactInformation> &contact_info_);
+  void modifyMoveArmGoal(arm_navigation_msgs::MoveArmGoal &move_arm_goal,
+                         arm_navigation_msgs::ArmNavigationErrorCodes &error_code,
+                         std::vector<arm_navigation_msgs::ContactInformation> &contact_info_);
 
   //! Uses move arm to a predefined arm position to the front, where the object can be transferred to the other arm
   bool moveArmToPose(std::string arm_name, const geometry_msgs::PoseStamped &desired_pose,
-                     const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                     const std::vector<motion_planning_msgs::LinkPadding> &link_padding);
+                     const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                     const std::vector<arm_navigation_msgs::LinkPadding> &link_padding);
 
   //! Uses move arm to a desired pose while keeping the object in the hand level
   bool moveArmConstrained(std::string arm_name, const geometry_msgs::PoseStamped &commanded_pose,
-                          const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                          const std::vector<motion_planning_msgs::LinkPadding> &link_padding,
-                          const motion_planning_msgs::Constraints &path_constraints,
+                          const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                          const std::vector<arm_navigation_msgs::LinkPadding> &link_padding,
+                          const arm_navigation_msgs::Constraints &path_constraints,
 			  const double &redundancy = 0.0,
 			  const bool &compute_viable_pose = true);
 
@@ -378,16 +378,16 @@ class MechanismInterface
 
   //! Translates the gripper from its current pose to a new one using interpolated ik
   bool translateGripper(std::string arm_name, const geometry_msgs::Vector3Stamped &direction,
-			motion_planning_msgs::OrderedCollisionOperations ord,
-			const std::vector<motion_planning_msgs::LinkPadding> &link_padding,
+			arm_navigation_msgs::OrderedCollisionOperations ord,
+			const std::vector<arm_navigation_msgs::LinkPadding> &link_padding,
 			float requested_distance, float min_distance,
 			float &actual_distance);
 
   //! Returns the link padding vector for setting the desired padding to gripper fingertip links
-  static std::vector<motion_planning_msgs::LinkPadding> fingertipPadding(std::string arm_name, double pad);
+  static std::vector<arm_navigation_msgs::LinkPadding> fingertipPadding(std::string arm_name, double pad);
 
   //! Returns the link padding vector for setting the desired padding to gripper touch links
-  static std::vector<motion_planning_msgs::LinkPadding> gripperPadding(std::string arm_name, double pad);
+  static std::vector<arm_navigation_msgs::LinkPadding> gripperPadding(std::string arm_name, double pad);
 
   //------------ attached objects (collision space) ------------
 

@@ -96,7 +96,7 @@ MechanismInterface::MechanismInterface() :
   point_head_action_client_(POINT_HEAD_ACTION_TOPIC, true)
 {
   //collision map publishing topic
-  attached_object_pub_ = root_nh_.advertise<mapping_msgs::AttachedCollisionObject>(ATTACHED_COLLISION_TOPIC, 10);
+  attached_object_pub_ = root_nh_.advertise<arm_navigation_msgs::AttachedCollisionObject>(ATTACHED_COLLISION_TOPIC, 10);
 
   //Cartesian pose command publishing topics
   right_cartesian_pub_ = root_nh_.advertise<geometry_msgs::PoseStamped>(std::string("right_arm")+
@@ -169,7 +169,7 @@ void MechanismInterface::attemptTrajectory(std::string arm_name,
   pr2_controllers_msgs::JointTrajectoryGoal goal;
   if (unnormalize)
   {
-    motion_planning_msgs::FilterJointTrajectory service_call;
+    arm_navigation_msgs::FilterJointTrajectory service_call;
     service_call.request.trajectory = trajectory;
     service_call.request.allowed_time = ros::Duration(2.0);
     if ( !joint_trajectory_normalizer_service_.client().call(service_call) )
@@ -217,8 +217,8 @@ void MechanismInterface::setInterpolatedIKParams(std::string arm_name, int num_s
 }
 
 bool MechanismInterface::moveArmToPose(std::string arm_name, const geometry_msgs::PoseStamped &desired_pose,
-                                       const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                                       const std::vector<motion_planning_msgs::LinkPadding> &link_padding)
+                                       const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                                       const std::vector<arm_navigation_msgs::LinkPadding> &link_padding)
 {
   kinematics_msgs::GetConstraintAwarePositionIK::Response ik_response;
   if(!getIKForPose(arm_name, desired_pose,ik_response, collision_operations, link_padding))
@@ -257,8 +257,8 @@ bool MechanismInterface::getFK(std::string arm_name,
 
 bool MechanismInterface::getIKForPose(std::string arm_name, const geometry_msgs::PoseStamped &desired_pose,
 				      kinematics_msgs::GetConstraintAwarePositionIK::Response& ik_response,
-                                      const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                                      const std::vector<motion_planning_msgs::LinkPadding> &link_padding)
+                                      const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                                      const std::vector<arm_navigation_msgs::LinkPadding> &link_padding)
 {
   //call collision-aware ik
   kinematics_msgs::GetConstraintAwarePositionIK::Request ik_request;
@@ -285,11 +285,11 @@ bool MechanismInterface::getIKForPose(std::string arm_name, const geometry_msgs:
 }
 
 bool MechanismInterface::checkStateValidity(std::string arm_name, const std::vector<double> &joint_values,
-                                          const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                                            const std::vector<motion_planning_msgs::LinkPadding> &link_padding)
+                                          const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                                            const std::vector<arm_navigation_msgs::LinkPadding> &link_padding)
 {
-  planning_environment_msgs::GetStateValidity::Request req;
-  planning_environment_msgs::GetStateValidity::Response res;
+  arm_navigation_msgs::GetStateValidity::Request req;
+  arm_navigation_msgs::GetStateValidity::Response res;
 
   req.robot_state.joint_state.name = getJointNames(arm_name);
   req.robot_state.joint_state.position = joint_values;
@@ -329,8 +329,8 @@ int MechanismInterface::getInterpolatedIK(std::string arm_name,
 					  float desired_trajectory_length,
 					  const std::vector<double> &seed_joint_position,
 					  const sensor_msgs::JointState &joint_state,
-					  const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-					  const std::vector<motion_planning_msgs::LinkPadding> &link_padding,
+					  const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+					  const std::vector<arm_navigation_msgs::LinkPadding> &link_padding,
 					  bool reverse_trajectory,
 					  trajectory_msgs::JointTrajectory &trajectory,
 					  float &actual_trajectory_length)
@@ -368,7 +368,7 @@ int MechanismInterface::getInterpolatedIK(std::string arm_name,
   //recall that here we setting the numbre of points in trajectory, which is steps+1
   setInterpolatedIKParams(arm_name, num_steps+1, collision_check_resolution, reverse_trajectory);
 
-  motion_planning_msgs::RobotState start_state;
+  arm_navigation_msgs::RobotState start_state;
   start_state.multi_dof_joint_state.child_frame_ids.push_back(handDescription().gripperFrame(arm_name));
   start_state.multi_dof_joint_state.poses.push_back(start_pose.pose);
   start_state.multi_dof_joint_state.frame_ids.push_back(start_pose.header.frame_id);
@@ -394,16 +394,16 @@ int MechanismInterface::getInterpolatedIK(std::string arm_name,
     start_state.joint_state.position.push_back(joint_state.position[i]);
   }
 
-  motion_planning_msgs::PositionConstraint position_constraint;
-  motion_planning_msgs::OrientationConstraint orientation_constraint;
-  motion_planning_msgs::poseStampedToPositionOrientationConstraints(end_pose, handDescription().gripperFrame(arm_name),
+  arm_navigation_msgs::PositionConstraint position_constraint;
+  arm_navigation_msgs::OrientationConstraint orientation_constraint;
+  arm_navigation_msgs::poseStampedToPositionOrientationConstraints(end_pose, handDescription().gripperFrame(arm_name),
 								    position_constraint,
 								    orientation_constraint);
-  motion_planning_msgs::Constraints goal_constraints;
+  arm_navigation_msgs::Constraints goal_constraints;
   goal_constraints.position_constraints.push_back(position_constraint);
   goal_constraints.orientation_constraints.push_back(orientation_constraint);
 
-  motion_planning_msgs::GetMotionPlan motion_plan;
+  arm_navigation_msgs::GetMotionPlan motion_plan;
   motion_plan.request.motion_plan_request.start_state = start_state;
   motion_plan.request.motion_plan_request.goal_constraints = goal_constraints;
   motion_plan.request.motion_plan_request.ordered_collision_operations = collision_operations;
@@ -426,7 +426,7 @@ int MechanismInterface::getInterpolatedIK(std::string arm_name,
     throw MechanismException("Interpolated IK: empty trajectory received");
   }
 
-  int error_code = motion_planning_msgs::ArmNavigationErrorCodes::SUCCESS;
+  int error_code = arm_navigation_msgs::ArmNavigationErrorCodes::SUCCESS;
   if (!reverse_trajectory)
   {
     for (size_t i=0; i<motion_plan.response.trajectory_error_codes.size(); i++)
@@ -487,8 +487,8 @@ int MechanismInterface::getInterpolatedIK(std::string arm_name,
 }
 
 bool MechanismInterface::attemptMoveArmToGoal(std::string arm_name, const std::vector<double> &desired_joint_values,
-                                           const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                                              const std::vector<motion_planning_msgs::LinkPadding> &link_padding)
+                                           const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                                              const std::vector<arm_navigation_msgs::LinkPadding> &link_padding)
 {
   //make sure joint controllers are running
   if(!checkController(right_joint_controller_) || !checkController(left_joint_controller_))
@@ -496,7 +496,7 @@ bool MechanismInterface::attemptMoveArmToGoal(std::string arm_name, const std::v
 
   int num_tries = 0;
   int max_tries = 5;
-  move_arm_msgs::MoveArmGoal move_arm_goal;
+  arm_navigation_msgs::MoveArmGoal move_arm_goal;
 
   move_arm_goal.motion_plan_request.group_name = handDescription().armGroup(arm_name);
   move_arm_goal.motion_plan_request.num_planning_attempts = 1;
@@ -518,7 +518,7 @@ bool MechanismInterface::attemptMoveArmToGoal(std::string arm_name, const std::v
   }
 
   bool success = false;
-  motion_planning_msgs::ArmNavigationErrorCodes error_code;
+  arm_navigation_msgs::ArmNavigationErrorCodes error_code;
   while(num_tries < max_tries)
   {
     move_arm_action_client_.client(arm_name).sendGoal(move_arm_goal);
@@ -529,7 +529,7 @@ bool MechanismInterface::attemptMoveArmToGoal(std::string arm_name, const std::v
       ROS_DEBUG("   Move arm goal could not be achieved by move_arm in the allowed duration");
       success = false;
       num_tries++;
-      move_arm_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
+      arm_navigation_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
       error_code.val = error_code.TIMED_OUT;
       modifyMoveArmGoal(move_arm_goal,error_code,move_arm_result.contacts);
       continue;
@@ -543,9 +543,9 @@ bool MechanismInterface::attemptMoveArmToGoal(std::string arm_name, const std::v
     }
     else
     {
-      move_arm_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
+      arm_navigation_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
       ROS_DEBUG("   Move arm: non-success state was reached. Reason: %s",
-               (motion_planning_msgs::armNavigationErrorCodeToString(move_arm_result.error_code)).c_str());
+               (arm_navigation_msgs::armNavigationErrorCodeToString(move_arm_result.error_code)).c_str());
       ROS_DEBUG("   num_tries: %d, max_tries: %d",num_tries,max_tries);
       success = false;
       num_tries++;
@@ -563,19 +563,19 @@ bool MechanismInterface::attemptMoveArmToGoal(std::string arm_name, const std::v
 }
 
 
-void MechanismInterface::modifyMoveArmGoal(move_arm_msgs::MoveArmGoal &move_arm_goal,
-                                           motion_planning_msgs::ArmNavigationErrorCodes &error_code,
-                                           std::vector<planning_environment_msgs::ContactInformation> &contact_info_)
+void MechanismInterface::modifyMoveArmGoal(arm_navigation_msgs::MoveArmGoal &move_arm_goal,
+                                           arm_navigation_msgs::ArmNavigationErrorCodes &error_code,
+                                           std::vector<arm_navigation_msgs::ContactInformation> &contact_info_)
 {
   double allowed_penetration_depth = 0.03;
   if(error_code.val == error_code.START_STATE_IN_COLLISION)
   {
-    std::vector<motion_planning_msgs::AllowedContactSpecification> allowed_contacts;
+    std::vector<arm_navigation_msgs::AllowedContactSpecification> allowed_contacts;
     for(unsigned int i=0; i < contact_info_.size(); i++)
     {
       if(contact_info_[i].depth < allowed_penetration_depth)
       {
-        motion_planning_msgs::AllowedContactSpecification allowed_contact_tmp;
+        arm_navigation_msgs::AllowedContactSpecification allowed_contact_tmp;
         allowed_contact_tmp.shape.type = allowed_contact_tmp.shape.BOX;
         allowed_contact_tmp.shape.dimensions.resize(3);
         allowed_contact_tmp.shape.dimensions[0] = 0.03;
@@ -607,9 +607,9 @@ void MechanismInterface::modifyMoveArmGoal(move_arm_msgs::MoveArmGoal &move_arm_
 
 
 bool MechanismInterface::moveArmConstrained(std::string arm_name, const geometry_msgs::PoseStamped &commanded_pose,
-                                            const motion_planning_msgs::OrderedCollisionOperations &collision_operations,
-                                            const std::vector<motion_planning_msgs::LinkPadding> &link_padding,
-                                            const motion_planning_msgs::Constraints &path_constraints,
+                                            const arm_navigation_msgs::OrderedCollisionOperations &collision_operations,
+                                            const std::vector<arm_navigation_msgs::LinkPadding> &link_padding,
+                                            const arm_navigation_msgs::Constraints &path_constraints,
                                             const double &redundancy,
                                             const bool &compute_viable_command_pose)
 {
@@ -621,7 +621,7 @@ bool MechanismInterface::moveArmConstrained(std::string arm_name, const geometry
   int num_tries = 0;
   int max_tries = 1;
 
-  move_arm_msgs::MoveArmGoal move_arm_goal;
+  arm_navigation_msgs::MoveArmGoal move_arm_goal;
   move_arm_goal.motion_plan_request.group_name = handDescription().armGroup(arm_name)+"_cartesian";
   move_arm_goal.motion_plan_request.num_planning_attempts = 1;
   move_arm_goal.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
@@ -637,7 +637,7 @@ bool MechanismInterface::moveArmConstrained(std::string arm_name, const geometry
     handDescription().gripperFrame(arm_name);
   move_arm_goal.motion_plan_request.goal_constraints.position_constraints[0].position = commanded_pose.pose.position;
   move_arm_goal.motion_plan_request.goal_constraints.position_constraints[0].constraint_region_shape.type =
-    geometric_shapes_msgs::Shape::BOX;
+    arm_navigation_msgs::Shape::BOX;
   move_arm_goal.motion_plan_request.goal_constraints.position_constraints[0].
     constraint_region_shape.dimensions.push_back(OBJECT_POSITION_TOLERANCE_X);
   move_arm_goal.motion_plan_request.goal_constraints.position_constraints[0].
@@ -707,8 +707,8 @@ bool MechanismInterface::moveArmConstrained(std::string arm_name, const geometry
       ROS_DEBUG("  Move arm goal could not be achieved by move_arm in the allowed duration");
       success = false;
       num_tries++;
-      move_arm_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
-      motion_planning_msgs::ArmNavigationErrorCodes error_code;
+      arm_navigation_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
+      arm_navigation_msgs::ArmNavigationErrorCodes error_code;
       error_code.val = error_code.TIMED_OUT;
       modifyMoveArmGoal(move_arm_goal,error_code,move_arm_result.contacts);
       continue;
@@ -722,9 +722,9 @@ bool MechanismInterface::moveArmConstrained(std::string arm_name, const geometry
     }
     else
     {
-      move_arm_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
+      arm_navigation_msgs::MoveArmResult move_arm_result = *move_arm_action_client_.client(arm_name).getResult();
       ROS_DEBUG("Move arm: non-success state was reached. Reason: %s",
-               (motion_planning_msgs::armNavigationErrorCodeToString(move_arm_result.error_code)).c_str());
+               (arm_navigation_msgs::armNavigationErrorCodeToString(move_arm_result.error_code)).c_str());
       ROS_DEBUG("num_tries: %d, max_tries: %d",num_tries,max_tries);
       success = false;
       num_tries++;
@@ -867,8 +867,8 @@ geometry_msgs::PoseStamped MechanismInterface::transformPose(const std::string t
 /*! Moves the gripper from its current pose to the one obtained by the specified translation.
 */
 bool MechanismInterface::translateGripper(std::string arm_name, const geometry_msgs::Vector3Stamped &direction,
-					  motion_planning_msgs::OrderedCollisionOperations ord,
-					  const std::vector<motion_planning_msgs::LinkPadding> &link_padding,
+					  arm_navigation_msgs::OrderedCollisionOperations ord,
+					  const std::vector<arm_navigation_msgs::LinkPadding> &link_padding,
 					  float requested_distance, float min_distance,
 					  float &actual_distance)
 {
@@ -941,10 +941,10 @@ geometry_msgs::PoseStamped MechanismInterface::getObjectPoseForGrasp(std::string
 
 void MechanismInterface::attachObjectToGripper(std::string arm_name, std::string collision_object_name)
 {
-  mapping_msgs::AttachedCollisionObject obj;
+  arm_navigation_msgs::AttachedCollisionObject obj;
   obj.object.header.stamp = ros::Time::now();
   obj.object.header.frame_id = handDescription().robotFrame(arm_name);
-  obj.object.operation.operation = mapping_msgs::CollisionObjectOperation::ATTACH_AND_REMOVE_AS_OBJECT;
+  obj.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ATTACH_AND_REMOVE_AS_OBJECT;
   obj.object.id = collision_object_name;
   obj.link_name = handDescription().attachLinkName(arm_name);
   obj.touch_links = handDescription().gripperTouchLinkNames(arm_name);
@@ -954,12 +954,12 @@ void MechanismInterface::attachObjectToGripper(std::string arm_name, std::string
 void MechanismInterface::detachAndAddBackObjectsAttachedToGripper(std::string arm_name,
 								  std::string collision_object_name)
 {
-  mapping_msgs::AttachedCollisionObject att;
+  arm_navigation_msgs::AttachedCollisionObject att;
   att.object.header.stamp = ros::Time::now();
   att.object.header.frame_id = handDescription().robotFrame(arm_name);
   att.link_name = handDescription().attachLinkName(arm_name);
   att.object.id = collision_object_name;
-  att.object.operation.operation = mapping_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
+  att.object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::DETACH_AND_ADD_AS_OBJECT;
   attached_object_pub_.publish(att);
 }
 
@@ -1300,11 +1300,11 @@ void MechanismInterface::sendCartesianPoseCommand(std::string arm_name, geometry
   }
 }
 
-std::vector<motion_planning_msgs::LinkPadding>
+std::vector<arm_navigation_msgs::LinkPadding>
 MechanismInterface::fingertipPadding(std::string arm_name, double pad)
 {
-  std::vector<motion_planning_msgs::LinkPadding> padding_vec;
-  motion_planning_msgs::LinkPadding padding;
+  std::vector<arm_navigation_msgs::LinkPadding> padding_vec;
+  arm_navigation_msgs::LinkPadding padding;
   padding.padding = pad;
   std::vector<std::string> links = handDescription().fingertipLinks(arm_name);
   for (size_t i=0; i<links.size(); i++)
@@ -1315,11 +1315,11 @@ MechanismInterface::fingertipPadding(std::string arm_name, double pad)
   return padding_vec;
 }
 
-std::vector<motion_planning_msgs::LinkPadding>
+std::vector<arm_navigation_msgs::LinkPadding>
 MechanismInterface::gripperPadding(std::string arm_name, double pad)
 {
-  std::vector<motion_planning_msgs::LinkPadding> padding_vec;
-  motion_planning_msgs::LinkPadding padding;
+  std::vector<arm_navigation_msgs::LinkPadding> padding_vec;
+  arm_navigation_msgs::LinkPadding padding;
   padding.padding = pad;
   std::vector<std::string> links = handDescription().gripperTouchLinkNames(arm_name);
   for (size_t i=0; i<links.size(); i++)

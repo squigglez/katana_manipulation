@@ -39,8 +39,8 @@
 
 #include <std_srvs/Empty.h>
 
-#include <mapping_msgs/CollisionObject.h>
-#include <mapping_msgs/AttachedCollisionObject.h>
+#include <arm_navigation_msgs/CollisionObject.h>
+#include <arm_navigation_msgs/AttachedCollisionObject.h>
 
 #include <object_manipulation_msgs/FindClusterBoundingBox.h>
 
@@ -60,8 +60,8 @@ CollisionMapInterface::CollisionMapInterface() :
   collision_object_current_id_(0),
   make_static_collision_map_client_(root_nh_, MAKE_STATIC_COLLISION_MAP_ACTION_NAME, true)
 {
-  collision_object_pub_ = root_nh_.advertise<mapping_msgs::CollisionObject>("collision_object", 10);
-  attached_object_pub_ = root_nh_.advertise<mapping_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+  collision_object_pub_ = root_nh_.advertise<arm_navigation_msgs::CollisionObject>("collision_object", 10);
+  attached_object_pub_ = root_nh_.advertise<arm_navigation_msgs::AttachedCollisionObject>("attached_collision_object", 10);
 }
 
 void CollisionMapInterface::connectServices()
@@ -107,8 +107,8 @@ bool CollisionMapInterface::connectionsEstablished(ros::Duration timeout)
 void CollisionMapInterface::resetCollisionModels()
 {
   ROS_WARN("CollisionMapInterface::resetCollisionModels"); // to be deleted
-  mapping_msgs::CollisionObject reset_object;
-  reset_object.operation.operation = mapping_msgs::CollisionObjectOperation::REMOVE;
+  arm_navigation_msgs::CollisionObject reset_object;
+  reset_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
   reset_object.header.frame_id = "katana_base_link";
   reset_object.header.stamp = ros::Time::now();
   reset_object.id = "all";
@@ -120,12 +120,12 @@ void CollisionMapInterface::resetCollisionModels()
 void CollisionMapInterface::resetAttachedModels()
 {
   ROS_WARN("CollisionMapInterface::resetAttachedModels"); // to be deleted
-  mapping_msgs::CollisionObject reset_object;
-  reset_object.operation.operation = mapping_msgs::CollisionObjectOperation::REMOVE;
+  arm_navigation_msgs::CollisionObject reset_object;
+  reset_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::REMOVE;
   reset_object.header.frame_id = "katana_base_link";
   reset_object.header.stamp = ros::Time::now();
   reset_object.id = "all";
-  mapping_msgs::AttachedCollisionObject reset_attached_objects;
+  arm_navigation_msgs::AttachedCollisionObject reset_attached_objects;
   reset_attached_objects.object.header.frame_id = "katana_base_link";
   reset_attached_objects.object.header.stamp = ros::Time::now();
   reset_attached_objects.link_name = "all";
@@ -156,7 +156,7 @@ std::string CollisionMapInterface::getNextObjectName()
 void CollisionMapInterface::takeStaticMap()
 {
   ROS_WARN("CollisionMapInterface::takeStaticMap"); // to be deleted
-  collision_environment_msgs::MakeStaticCollisionMapGoal static_map_goal;
+  arm_navigation_msgs::MakeStaticCollisionMapGoal static_map_goal;
   static_map_goal.cloud_source = static_map_cloud_name_;
   static_map_goal.number_of_clouds = 2;
 
@@ -179,12 +179,12 @@ void CollisionMapInterface::processCollisionGeometryForTable(const tabletop_obje
 							     std::string table_collision_name)
 {
   ROS_WARN("CollisionMapInterface::processCollisionGeometryForTable"); // to be deleted
-  mapping_msgs::CollisionObject table_object;
-  table_object.operation.operation = mapping_msgs::CollisionObjectOperation::ADD;
+  arm_navigation_msgs::CollisionObject table_object;
+  table_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
   table_object.header.frame_id = table.pose.header.frame_id;
   table_object.header.stamp = ros::Time::now();
   table_object.shapes.resize(1);
-  table_object.shapes[0].type = geometric_shapes_msgs::Shape::BOX;
+  table_object.shapes[0].type = arm_navigation_msgs::Shape::BOX;
   table_object.shapes[0].dimensions.resize(3);
   table_object.shapes[0].dimensions[0] = fabs(table.x_max-table.x_min);
   table_object.shapes[0].dimensions[1] = fabs(table.y_max-table.y_min);
@@ -213,7 +213,7 @@ void CollisionMapInterface::processCollisionGeometryForObject
    std::string &collision_name)
 {
   ROS_WARN("CollisionMapInterface::processCollisionGeometryForObject"); // to be deleted
-  mapping_msgs::CollisionObject collision_object;
+  arm_navigation_msgs::CollisionObject collision_object;
   collision_object.shapes.resize(1);
 
   if (!getMeshFromDatabasePose(model_pose, collision_object.shapes[0]))
@@ -224,8 +224,8 @@ void CollisionMapInterface::processCollisionGeometryForObject
   collision_object.header.stamp = ros::Time::now();
   collision_object.poses.push_back(model_pose.pose.pose);
 
-  collision_object.shapes[0].type = geometric_shapes_msgs::Shape::MESH;
-  collision_object.operation.operation = mapping_msgs::CollisionObjectOperation::ADD;
+  collision_object.shapes[0].type = arm_navigation_msgs::Shape::MESH;
+  collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
   collision_name = getNextObjectName();
   collision_object.id = collision_name;
   collision_object_pub_.publish(collision_object);
@@ -239,16 +239,16 @@ CollisionMapInterface::processCollisionGeometryForBoundingBox(const object_manip
   ROS_INFO("Adding bounding box with dimensions %f %f %f to collision map",
 	   box.dimensions.x, box.dimensions.y, box.dimensions.z);
 
-  mapping_msgs::CollisionObject collision_object;
-  collision_object.operation.operation = mapping_msgs::CollisionObjectOperation::ADD;
+  arm_navigation_msgs::CollisionObject collision_object;
+  collision_object.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
   collision_name = getNextObjectName();
   collision_object.id = collision_name;
 
   collision_object.header.frame_id = "katana_base_link"; //box.pose_stamped.header.frame_id;
   collision_object.header.stamp = ros::Time::now();
 
-  geometric_shapes_msgs::Shape shape;
-  shape.type = geometric_shapes_msgs::Shape::BOX;
+  arm_navigation_msgs::Shape shape;
+  shape.type = arm_navigation_msgs::Shape::BOX;
   shape.dimensions.resize(3);
   shape.dimensions[0] = box.dimensions.x;
   shape.dimensions[1] = box.dimensions.y;
@@ -265,8 +265,8 @@ void CollisionMapInterface::processCollisionGeometryForCluster(const sensor_msgs
   ROS_WARN("CollisionMapInterface::processCollisionGeometryForCluster"); // to be deleted
   ROS_INFO("Adding cluster with %u points to collision map", (unsigned int)cluster.points.size());
 
-  mapping_msgs::CollisionObject many_boxes;
-  many_boxes.operation.operation = mapping_msgs::CollisionObjectOperation::ADD;
+  arm_navigation_msgs::CollisionObject many_boxes;
+  many_boxes.operation.operation = arm_navigation_msgs::CollisionObjectOperation::ADD;
   many_boxes.header = cluster.header;
   many_boxes.header.stamp = ros::Time::now();
   unsigned int num_to_use = (unsigned int)(cluster.points.size()/point_skip_num_);
@@ -277,8 +277,8 @@ void CollisionMapInterface::processCollisionGeometryForCluster(const sensor_msgs
     collision_size = collision_box_size_;
 
   for(unsigned int i = 0; i < num_to_use; i++) {
-    geometric_shapes_msgs::Shape shape;
-    shape.type = geometric_shapes_msgs::Shape::BOX;
+    arm_navigation_msgs::Shape shape;
+    shape.type = arm_navigation_msgs::Shape::BOX;
     shape.dimensions.resize(3);
     shape.dimensions[0] = collision_size;
     shape.dimensions[1] = collision_size;
@@ -302,7 +302,7 @@ void CollisionMapInterface::processCollisionGeometryForCluster(const sensor_msgs
 }
 
 bool CollisionMapInterface::getMeshFromDatabasePose(const household_objects_database_msgs::DatabaseModelPose &model_pose,
-						    geometric_shapes_msgs::Shape& mesh)
+						    arm_navigation_msgs::Shape& mesh)
 {
 
   ROS_WARN("CollisionMapInterface::getMeshFromDatabasePose"); // to be deleted

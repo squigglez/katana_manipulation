@@ -1,13 +1,13 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
-#include <move_arm_msgs/MoveArmAction.h>
+#include <arm_navigation_msgs/MoveArmAction.h>
 
 static const size_t NUM_JOINTS = 5;
 
-bool move_to_joint_goal(std::vector<motion_planning_msgs::JointConstraint> joint_constraints,
-                        actionlib::SimpleActionClient<move_arm_msgs::MoveArmAction> &move_arm) {
+bool move_to_joint_goal(std::vector<arm_navigation_msgs::JointConstraint> joint_constraints,
+                        actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> &move_arm) {
 
-  move_arm_msgs::MoveArmGoal goal;
+  arm_navigation_msgs::MoveArmGoal goal;
 
   goal.motion_plan_request.group_name = "arm";
   goal.motion_plan_request.num_planning_attempts = 1;
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "move_arm_joint_goal_test");
   ros::NodeHandle nh;
-  actionlib::SimpleActionClient<move_arm_msgs::MoveArmAction> move_arm("move_arm", true);
+  actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm("move_arm", true);
 
   move_arm.waitForServer();
   ROS_INFO("Connected to server");
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   names[4] = "katana_motor5_wrist_roll_joint";
 
 
-  std::vector<motion_planning_msgs::JointConstraint> joint_constraints(NUM_JOINTS);
+  std::vector<arm_navigation_msgs::JointConstraint> joint_constraints(NUM_JOINTS);
 
   for (size_t i = 0; i < NUM_JOINTS; ++i)
   {

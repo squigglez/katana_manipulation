@@ -71,11 +71,11 @@ class GraspExecutorWithApproach : public GraspExecutor
 			      trajectory_msgs::JointTrajectory &grasp_trajectory);
 
   //! Collision operations to be used when planning the grasp motion
-  virtual motion_planning_msgs::OrderedCollisionOperations
+  virtual arm_navigation_msgs::OrderedCollisionOperations
     collisionOperationsForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal);
 
   //! Dynamic link padding to be used for grasp operation
-  virtual std::vector<motion_planning_msgs::LinkPadding>
+  virtual std::vector<arm_navigation_msgs::LinkPadding>
     linkPaddingForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal);
 
   //! Computes IK for the pre-grasp and interpolated IK from pre-grasp to grasp and from grasp to lift

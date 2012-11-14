@@ -13,7 +13,7 @@
   <depend package="orrosplanning"/>
   <depend package="openrave"/>
   <depend package="ompl"/>
-  <depend package="move_arm_msgs"/>
+  <depend package="arm_navigation_msgs"/>
 
 
 </package>
