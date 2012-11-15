@@ -1,16 +1,68 @@
-<?xml version="1.0"?>
 <launch>
+  <arg name="use_probabilistic_grasp_planner" default="false" />
 
-<!-- for DEBUG purposes here only the BB finder is called, all other components originally belonging to this launchfile can be found in
-     katana_tabletop_manipulation_launch/object_manipulator.launch and are launched from there because it allows changes to the hand description and the
-     grasp planners without interfering with the perception and arm navigation elements.
-     as soon as the manipulation is stable they will be transfered back into this file.
--->
+  <!-- hand descriptions -->
+  <rosparam command="load" file="$(find katana_object_manipulation_launch)/config/katana_hand_descriptions.yaml"/>
 
-<!-- cluster bounding box finder-->
- <node name="cluster_bounding_box_finder" pkg="object_manipulator"
-    type="cluster_bounding_box_finder_server.py" output="screen" respawn="false" >
-	<param name="z_up_frame" value="/katana_base_link" />
+  <!-- arm configurations -->
+  <!-- <rosparam command="load" file="$(find pr2_object_manipulation_launch)/config/pr2_arm_configurations.yaml"/> -->
+
+  <!--grasp planners-->
+
+  <!-- CLUSTER - GRASP - PLANNER: OpenRAVE Grasp Planner -->
+  <remap from="/GraspPlanning" to="/openrave_grasp_planner" />
+  <node pkg="katana_openrave_grasp_planner" type="openrave_grasp_planner.py" name="openrave_graspplanning" args="--returngrasps=2 --scene=$(find katana_description)/collada/$(env KATANA_TYPE).robot.xml" output="screen"/>
+  <!-- to switch off the ik check add: - -ignoreik -->
+  <!-- to ask a specific number (eg 10) of grasps add: - -returngrasps=10 -->
+  <!-- by default the Planner is set to returngrasps = 1, so it gives the fastest solution -->
+
+  <!--object manipulator-->
+
+  <node name="object_manipulator" pkg="object_manipulator"
+    type="object_manipulator_node" respawn="false" output="screen">
+    <!--
+      <remap from="arm/constraint_aware_ik" to="/katana_constraint_aware_kinematics/get_constraint_aware_ik" />
+      <remap from="arm/get_fk" to="/katana_constraint_aware_kinematics/get_fk" />
+      <remap from="arm/get_ik_solver_info" to="/katana_constraint_aware_kinematics/get_ik_solver_info" />
+    -->
+
+    <remap from="arm/constraint_aware_ik" to="/kurtana_arm_kinematics/get_constraint_aware_ik" />
+    <remap from="arm/get_fk" to="/kurtana_arm_kinematics/get_fk" />
+    <remap from="arm/get_ik_solver_info" to="/kurtana_arm_kinematics/get_ik_solver_info" />
+
+    <remap from="arm/interpolated_ik" to="/interpolated_ik_motion_plan" />
+    <remap from="arm/interpolated_ik_set_params" to="/interpolated_ik_motion_plan_set_params" />
+
+    <remap from="arm/get_state_validity" to="/environment_server/get_state_validity" />
+
+    <remap from="arm/move_arm" to="/move_arm" />    
+
+    <remap from="arm/joint_trajectory" to="/katana_arm_controller/joint_trajectory_action" />
+
+    <remap from="arm/hand_posture_execution" to="/gripper_grasp_posture_controller" />
+
+    <remap from="arm/grasp_status" to="/gripper_grasp_status" />
+
+    <param name="arm_joint_controller" value="l_arm_controller" />
+
+    <param name="default_cluster_planner" value="/openrave_grasp_planner" />
+    <!--  <param name="default_cluster_planner" value="/plan_point_cluster_grasp" /> -->
+
+    <!--  <param name="default_database_planner" value="/database_grasp_planning" />  -->
+
+    <!--  <param name="default_probabilistic_planner" value="/probabilistic_grasp_planning" /> -->
+    <param name="use_probabilistic_grasp_planner" value="$(arg use_probabilistic_grasp_planner)" />
+
+    <param name="randomize_grasps" value="false" />
   </node>
 
+  <!-- cluster bounding box finder--> 
+
+  <node name="cluster_bounding_box_finder" pkg="object_manipulator" cwd="node"
+    type="cluster_bounding_box_finder_server.py" output="screen" respawn="false" >
+    <param name="z_up_frame" value="/base_link" />
+  </node>
+
+  <!-- pad objects when filtering from collision map-->
+  <rosparam param="/robot_description_planning/default_object_padding">0.05</rosparam>
 </launch>

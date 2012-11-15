@@ -36,14 +36,7 @@
   </include>
 
   <!-- manipulation -->
-  <!-- TODO: dieses file noch anpassen -->
-  <!-- <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation.launch"/>
-    <arg name="use_slip_controllers" value="$(arg use_slip_controllers)"/>
-    <arg name="use_left_arm" value="$(arg use_left_arm)"/>
-    <arg name="use_right_arm" value="$(arg use_right_arm)"/>
-    <arg name="use_task_cartesian" value="$(arg use_task_cartesian)"/>
-    <arg name="sim" value="$(arg sim)"/>
-  </include> -->
+  <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation.launch" />
 
   <!-- tabletop collision map processing -->
   <node pkg="tabletop_collision_map_processing" name="tabletop_collision_map_processing"
