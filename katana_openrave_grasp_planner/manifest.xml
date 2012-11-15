@@ -13,6 +13,7 @@
   </export>
   <depend package="roscpp"/>
   <depend package="openrave"/>
+  <depend package="openraveros"/>
   <depend package="posedetection_msgs"/>
   <depend package="tf"/>
   <depend package="arm_navigation_msgs"/>

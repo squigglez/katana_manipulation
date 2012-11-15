@@ -19,6 +19,7 @@ __license__ = 'Apache License, Version 2.0'
 import roslib; roslib.load_manifest('katana_openrave_grasp_planner')
 import rospy
 
+roslib.load_manifest('object_manipulation_msgs')  # copied from orrosplanning; TODO: remove?
 from optparse import OptionParser
 from openravepy import *
 from openravepy.misc import OpenRAVEGlobalArguments
@@ -178,8 +179,10 @@ if __name__ == "__main__":
                       help='ignores the ik computations')
     (options, args) = parser.parse_args()
     env = OpenRAVEGlobalArguments.parseAndCreate(options,defaultviewer=False)
-    RaveLoadPlugin(os.path.join(roslib.packages.get_pkg_dir('orrosplanning'),'lib','liborrosplanning.so'))
-    env.LoadProblem(RaveCreateModule(env,"textserver"),"")
+    RaveLoadPlugin(os.path.join(roslib.packages.get_pkg_dir('orrosplanning'),'lib','orrosplanning'))
+    RaveLoadPlugin(os.path.join(roslib.packages.get_pkg_dir('openraveros'),'lib','openraveros'))
+    namespace = 'openrave'
+    env.AddModule(RaveCreateModule(env,'rosserver'),namespace)
     print 'initializing, please wait for ready signal...'
 
     graspparameters = orrosplanning.srv.SetGraspParametersRequest()
@@ -319,6 +322,8 @@ if __name__ == "__main__":
                                 print 'rosgrasp.grasp_posture.name:%s'%rosgrasp.grasp_posture.name
                                 rosgrasp.grasp_posture.position = jointvalues[r_[fastgrasping.gmodel.manip.GetGripperIndices(),fastgrasping.gmodel.manip.GetArmIndices()]]
                                 print 'rosgrasp.grasp_posture.position:%s'%rosgrasp.grasp_posture.position
+                                rosgrasp.pre_grasp_posture.name = str(rosgrasp.pre_grasp_posture.name)
+                                rosgrasp.grasp_posture.name = str(rosgrasp.grasp_posture.name)
                                 T = fastgrasping.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
                                 q = quatFromRotationMatrix(T[0:3,0:3])
                                 rosgrasp.grasp_pose.position = geometry_msgs.msg.Point(T[0,3],T[1,3],T[2,3])
