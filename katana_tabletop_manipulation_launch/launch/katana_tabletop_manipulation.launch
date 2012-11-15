@@ -1,31 +1,65 @@
-<?xml version="1.0"?>
 <launch>
+  <!-- set stereo to true for narrow stereo, false for kinect -->
+  <arg name="stereo" default="true" />
+  <arg name="use_slip_controllers" default="false"/>
+  <arg name="use_right_arm" default="true"/>
+  <arg name="use_left_arm" default="true"/>
+  <arg name="use_task_cartesian" default="false"/>
+  <arg name="log_to_warehouse" default="false"/>
+  <arg name="flatten_table" default="false"/>
+  <arg name="kinect_frame_prefix" default="/kinect" />
+  <arg name="kinect_camera_name" default="kinect" />
+  <arg name="sim" default="false"/>
+
   <!-- Use the remote database client; this won't work and produce the following error:
 
            Could not retrieve list of models from database (/tabletop_object_recognition)
 
        That only means that CAD models won't be available; grasping unknown
        objects (just represented by a point cloud) still works.  -->
+  <!-- client for object database running on remote server at Willow Garage -->
+  <!-- DOES NOT WORK IN TRUNK RIGHT NOW -->
+  <!--
   <include file="$(find household_objects_database)/launch/objects_database_remote_client.launch"/>
+  -->
 
-  <!-- alternative option: database server running on a local machine; you need
-       to install a Postgresql server and download the database for this to work -->
-  <!--   <param name="/household_objects_database/database_host" value="localhost"/>
-  <param name="/household_objects_database/database_port" value="5432"/>
-  <param name="/household_objects_database/database_user" value="willow"/>
-  <param name="/household_objects_database/database_pass" value="willow"/>
-  <param name="/household_objects_database/database_name" value="household_objects"/>
+  <!-- alternative option: database server running on a local machine -->
+  <rosparam command="load" file="$(find household_objects_database)/config/wgs36.yaml"/>
   <node pkg="household_objects_database" name="objects_database_node" type="objects_database_node"
-     respawn="true" output="screen"/> -->
+  	respawn="true" output="screen"/>    
 
   <!-- manipulation prerequisites -->
-  <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation_prerequisites.launch" />
+  <!-- TODO: dieses file noch anpassen -->
+  <!-- <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation_prerequisites.launch">
+    <arg name="stereo" value="$(arg stereo)"/>    
+    <arg name="use_left_arm" value="$(arg use_left_arm)"/>    
+    <arg name="use_right_arm" value="$(arg use_right_arm)"/>    
+    <arg name="log_to_warehouse" value="$(arg log_to_warehouse)"/>
+    <arg name="kinect_frame_prefix" value="$(arg kinect_frame_prefix)"/>
+    <arg name="kinect_camera_name" value="$(arg kinect_camera_name)"/>
+    <arg name="sim" value="$(arg sim)"/>
+  </include> -->
 
   <!-- manipulation -->
-  <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation.launch"/>
+  <!-- TODO: dieses file noch anpassen -->
+  <!-- <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation.launch"/>
+    <arg name="use_slip_controllers" value="$(arg use_slip_controllers)"/>
+    <arg name="use_left_arm" value="$(arg use_left_arm)"/>
+    <arg name="use_right_arm" value="$(arg use_right_arm)"/>
+    <arg name="use_task_cartesian" value="$(arg use_task_cartesian)"/>
+    <arg name="sim" value="$(arg sim)"/>
+  </include> -->
+
+  <!-- tabletop collision map processing -->
+  <!-- <node pkg="katana_tabletop_collision_map_processing" name="tabletop_collision_map_processing"
+        type="tabletop_collision_map_processing_node" respawn="false" output="screen" />
+  <param name="tabletop_collision_map_processing/get_model_mesh_srv"
+      value="/objects_database_node/get_model_mesh" />
+  <param name="tabletop_collision_map_processing/static_map_cloud_name" value="kinect_depth_fully_filtered"/> -->
+
+
 
   <!-- tabletop segmentation and object recognition -->
-
   <!-- segmentation -->
   <include file="$(find katana_tabletop_manipulation_launch)/launch/katana_tabletop_segmentation.launch"/>
   <!-- object recognition -->
@@ -34,16 +68,4 @@
   <!--complete node -->
   <node pkg="tabletop_object_detector" name="tabletop_complete_node" type="tabletop_complete_node"
         respawn="true" output="screen"/>
-
-  <!-- we want to use the database -->
-  <param name="perform_fit_merge" value="false" />
-  <param name="/tabletop_node/use_database" value="false"/>
-
-  <!-- tabletop collision map processing -->
-  <param name="tabletop_collision_map_processing/get_model_mesh_srv" value="/objects_database_node/get_model_mesh" />
-  <param name="tabletop_collision_map_processing/static_map_cloud_name" value="kinect_depth_fully_filtered"/>
-
-  <node pkg="katana_tabletop_collision_map_processing" name="tabletop_collision_map_processing"
-        type="tabletop_collision_map_processing_node" respawn="true" output="screen">
-  </node>
 </launch>
