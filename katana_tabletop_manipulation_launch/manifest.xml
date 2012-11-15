@@ -22,7 +22,6 @@
   <depend package="rospy"/>
   <depend package="tf"/>
   <depend package="visualization_msgs"/>
-  <depend package="eigen"/>
   <depend package="eigen_conversions"/>
   <depend package="sensor_msgs"/>
   <depend package="orrosplanning"/>
