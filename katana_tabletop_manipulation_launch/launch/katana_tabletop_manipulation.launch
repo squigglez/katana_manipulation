@@ -7,7 +7,7 @@
   <arg name="use_task_cartesian" default="false"/>
   <arg name="log_to_warehouse" default="false"/>
   <arg name="flatten_table" default="false"/>
-  <arg name="kinect_frame_prefix" default="/kinect" />
+  <arg name="kinect_frame_prefix" default="/kinect_rgb_optical_frame" />
   <arg name="kinect_camera_name" default="kinect" />
   <arg name="sim" default="false"/>
 
@@ -29,16 +29,11 @@
     respawn="true" output="screen"/>    
 
   <!-- manipulation prerequisites -->
-  <!-- TODO: dieses file noch anpassen -->
-  <!-- <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation_prerequisites.launch">
-    <arg name="stereo" value="$(arg stereo)"/>    
-    <arg name="use_left_arm" value="$(arg use_left_arm)"/>    
-    <arg name="use_right_arm" value="$(arg use_right_arm)"/>    
+  <include file="$(find katana_object_manipulation_launch)/launch/katana_manipulation_prerequisites.launch">
     <arg name="log_to_warehouse" value="$(arg log_to_warehouse)"/>
     <arg name="kinect_frame_prefix" value="$(arg kinect_frame_prefix)"/>
     <arg name="kinect_camera_name" value="$(arg kinect_camera_name)"/>
-    <arg name="sim" value="$(arg sim)"/>
-  </include> -->
+  </include>
 
   <!-- manipulation -->
   <!-- TODO: dieses file noch anpassen -->
