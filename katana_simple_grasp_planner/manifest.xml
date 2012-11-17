@@ -1,0 +1,18 @@
+<package>
+  <description brief="katana_simple_grasp_planner">
+
+     katana_simple_grasp_planner
+
+  </description>
+  <author>Martin Günther</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/katana_simple_grasp_planner</url>
+  <depend package="tf"/>
+  <depend package="roscpp"/>
+  <depend package="object_manipulation_msgs"/>
+  <depend package="sensor_msgs"/>
+
+</package>
+
+
