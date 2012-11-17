@@ -41,6 +41,8 @@ public:
 
 private:
   tf::TransformBroadcaster tf_broadcaster_;
+
+  std::vector<tf::Transform> generate_grasps(double x, double y, double z);
 };
 
 } /* namespace katana_simple_grasp_planner */

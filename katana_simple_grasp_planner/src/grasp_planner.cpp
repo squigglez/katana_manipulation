@@ -39,20 +39,77 @@ GraspPlanner::~GraspPlanner()
   // TODO Auto-generated destructor stub
 }
 
-void GraspPlanner::main_loop() {
-  ros::Rate loop_rate(1);
+/**
+ * x, y, z: center of grasp point (the point that should be between the finger tips of the gripper)
+ */
+std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, double z)
+{
+  static const double ANGLE_INC = M_PI / 160;
+  static const double SIDE_ANGLE_MIN = -M_PI / 2;
+  static const double STRAIGHT_ANGLE_MIN = 0.0;
+  static const double ANGLE_MAX = M_PI / 2;
 
-  while (ros::ok())
+  // how far from the grasp center should the wrist be?
+  static const double STANDOFF = -0.20;
+
+  std::vector<tf::Transform> grasps;
+
+  tf::Transform transform;
+
+  tf::Transform standoff_trans;
+  standoff_trans.setOrigin(tf::Vector3(STANDOFF, 0.0, 0.0));
+  standoff_trans.setRotation(tf::createIdentityQuaternion());
+
+
+  // ----- side grasps
+  //
+  //  1. side grasp (xy-planes of `katana_motor5_wrist_roll_link` and of `katana_base_link` are parallel):
+  //     - standard: `rpy = (0, 0, *)` (orientation of `katana_motor5_wrist_roll_link` in `katana_base_link` frame)
+  //     - overhead: `rpy = (pi, 0, *)`
+  for (double roll = 0.0; roll <= M_PI; roll += M_PI)
   {
-    double roll = 0.0, pitch = 0.0, yaw = M_PI;
-    double x = 0.30, y = 0.0, z = 0.0;
+    double pitch = 0.0;
+    for (double yaw = SIDE_ANGLE_MIN + atan2(y, x); yaw <= ANGLE_MAX + atan2(y, x); yaw += ANGLE_INC)
+    {
+      transform.setOrigin(tf::Vector3(x, y, z));
+      transform.setRotation(tf::createQuaternionFromRPY(roll, pitch, yaw));
 
-    tf::Transform transform;
+      grasps.push_back(transform * standoff_trans);
+    }
+  }
 
-    transform.setOrigin(tf::Vector3(x, y, z));
-    transform.setRotation(tf::createQuaternionFromRPY(roll, pitch, yaw));
+  // ----- straight grasps
+  //
+  //  2. straight grasp (xz-plane of `katana_motor5_wrist_roll_link` contains z axis of `katana_base_link`)
+  //     - standard: `rpy = (0, *, atan2(y_w, x_w))`   (x_w, y_w = position of `katana_motor5_wrist_roll_link` in `katana_base_link` frame)
+  //     - overhead: `rpy = (pi, *, atan2(y_w, x_w))`
+  for (double roll = 0.0; roll <= M_PI; roll += M_PI)
+  {
+    for (double pitch = STRAIGHT_ANGLE_MIN; pitch <= ANGLE_MAX; pitch += ANGLE_INC)
+    {
+      double yaw = atan2(y, x);
+      transform.setOrigin(tf::Vector3(x, y, z));
+      transform.setRotation(tf::createQuaternionFromRPY(roll, pitch, yaw));
 
-    tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "katana_base_link", "wrist_link"));
+      grasps.push_back(transform * standoff_trans);
+    }
+  }
+
+  return grasps;
+}
+
+void GraspPlanner::main_loop() {
+  ros::Rate loop_rate(10);
+
+  std::vector<tf::Transform> grasps = generate_grasps(0.40, 0.30, 0.0);
+
+  // publish TFs
+  for (std::vector<tf::Transform>::iterator it = grasps.begin(); it != grasps.end(); ++it)
+  {
+    tf_broadcaster_.sendTransform(tf::StampedTransform(*it, ros::Time::now(), "katana_base_link", "wrist_link"));
+
+    if (!ros::ok())
+      break;
 
     ros::spinOnce();
     loop_rate.sleep();
