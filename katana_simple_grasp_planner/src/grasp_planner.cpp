@@ -28,15 +28,36 @@
 namespace katana_simple_grasp_planner
 {
 
-GraspPlanner::GraspPlanner()
+GraspPlanner::GraspPlanner() :
+    kinematics_loader_("kinematics_base", "kinematics::KinematicsBase")
 {
-  // TODO Auto-generated constructor stub
+  // see arm_kinematics_constraint_aware/src/arm_kinematics_solver_constraint_aware.cpp
+  try
+  {
+      kinematics_solver_ = kinematics_loader_.createInstance("arm_kinematics_constraint_aware/KDLArmKinematicsPlugin");
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+      ROS_ERROR("The plugin failed to load. Error1: %s", ex.what());    //handle the class failing to load
+      return;
+  }
 
+  std::string group_name = "arm";
+  std::string base_name = "katana_base_link";
+  std::string tip_name = "katana_motor5_wrist_roll_link";
+
+  if(kinematics_solver_->initialize(group_name,
+                                    base_name,
+                                    tip_name,
+                                    .025)) {
+  } else {
+    ROS_ERROR_STREAM("Initialize is failing for " << group_name);
+    return;
+  }
 }
 
 GraspPlanner::~GraspPlanner()
 {
-  // TODO Auto-generated destructor stub
 }
 
 /**
@@ -98,15 +119,40 @@ std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, dou
   return grasps;
 }
 
+std::vector<double> GraspPlanner::get_ik(tf::Transform grasp_tf)
+{
+  geometry_msgs::Pose ik_pose;
+  tf::poseTFToMsg(grasp_tf, ik_pose);
+
+  std::vector<double> ik_seed_state;
+  ik_seed_state.resize(5, 0.0);
+
+  std::vector<double> solution;
+  int error_code;   // see arm_navigation_msgs/msg/ArmNavigationErrorCodes.msg
+
+  kinematics_solver_->getPositionIK(ik_pose, ik_seed_state, solution, error_code);
+
+  if (error_code == 1)
+    ROS_DEBUG("IK solution: %f %f %f %f %f", solution[0], solution[1], solution[2], solution[3], solution[4]);
+  else
+    ROS_INFO("no IK found (error %d)", error_code);
+
+  return solution;
+}
+
+
 void GraspPlanner::main_loop() {
   ros::Rate loop_rate(10);
 
-  std::vector<tf::Transform> grasps = generate_grasps(0.40, 0.30, 0.0);
+  std::vector<tf::Transform> grasps = generate_grasps(0.30, 0.20, 0.0);
 
   // publish TFs
   for (std::vector<tf::Transform>::iterator it = grasps.begin(); it != grasps.end(); ++it)
   {
-    tf_broadcaster_.sendTransform(tf::StampedTransform(*it, ros::Time::now(), "katana_base_link", "wrist_link"));
+    std::vector<double> ik_sol = get_ik(*it);
+
+    if (ik_sol.size() > 0)
+      tf_broadcaster_.sendTransform(tf::StampedTransform(*it, ros::Time::now(), "katana_base_link", "wrist_link"));
 
     if (!ros::ok())
       break;
@@ -121,7 +167,7 @@ void GraspPlanner::main_loop() {
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "katana");
+  ros::init(argc, argv, "katana_simple_grasp_planner");
   katana_simple_grasp_planner::GraspPlanner grasp_planner_node;
 
   grasp_planner_node.main_loop();

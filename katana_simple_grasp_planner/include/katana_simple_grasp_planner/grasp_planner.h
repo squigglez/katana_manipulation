@@ -27,6 +27,9 @@
 
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
+#include <pluginlib/class_loader.h>
+#include <kinematics_base/kinematics_base.h>
+#include <sensor_msgs/JointState.h>
 
 namespace katana_simple_grasp_planner
 {
@@ -42,7 +45,11 @@ public:
 private:
   tf::TransformBroadcaster tf_broadcaster_;
 
+  pluginlib::ClassLoader<kinematics::KinematicsBase> kinematics_loader_;
+  boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
+
   std::vector<tf::Transform> generate_grasps(double x, double y, double z);
+  std::vector<double> get_ik(tf::Transform grasp_tf);
 };
 
 } /* namespace katana_simple_grasp_planner */
