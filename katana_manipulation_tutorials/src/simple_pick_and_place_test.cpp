@@ -1,10 +1,67 @@
 #include <ros/ros.h>
 
+#include <tf/transform_listener.h>
 #include <actionlib/client/simple_action_client.h>
 #include <tabletop_object_detector/TabletopDetection.h>
 #include <tabletop_collision_map_processing/TabletopCollisionMapProcessing.h>
 #include <object_manipulation_msgs/PickupAction.h>
 #include <object_manipulation_msgs/PlaceAction.h>
+
+
+static const double TABLE_HEIGHT = 0.28;
+
+tf::TransformListener *tf_listener;
+
+/**
+ * return nearest object to point
+ */
+bool nearest_object(std::vector<object_manipulation_msgs::GraspableObject>& objects, geometry_msgs::PointStamped& reference_point, int& object_ind)
+{
+  geometry_msgs::PointStamped point;
+
+  // convert point to base_link frame
+  tf_listener->transformPoint("/base_link", reference_point, point);
+
+  // find the closest object
+  double nearest_dist = 1e6;
+  int nearest_object_ind = -1;
+
+  for (size_t i = 0; i < objects.size(); ++i)
+  {
+    sensor_msgs::PointCloud cloud;
+    tf_listener->transformPointCloud("/base_link", objects[i].cluster, cloud);
+
+    // calculate average
+    float x = 0.0, y = 0.0, z = 0.0;
+    for (size_t j = 0; j < cloud.points.size(); ++j)
+    {
+      x += cloud.points[j].x;
+      y += cloud.points[j].y;
+      z += cloud.points[j].z;
+    }
+    x /= cloud.points.size();
+    y /= cloud.points.size();
+    z /= cloud.points.size();
+
+    double dist = sqrt(pow(x - point.point.x, 2.0) + pow(y - point.point.y, 2.0) + pow(z - point.point.z, 2.0));
+    if (dist < nearest_dist)
+    {
+      nearest_dist = dist;
+      nearest_object_ind = i;
+    }
+  }
+
+  if (nearest_object_ind > -1)
+  {
+    ROS_INFO("nearest object ind: %d (distance: %f)", nearest_object_ind, nearest_dist);
+    object_ind = nearest_object_ind;
+    return true;
+  } else
+  {
+    ROS_ERROR("No nearby objects. Unable to select grasp target");
+    return false;
+  }
+}
 
 int main(int argc, char **argv)
 {
@@ -14,12 +71,12 @@ int main(int argc, char **argv)
 
   //set service and action names
   const std::string OBJECT_DETECTION_SERVICE_NAME = "/object_detection";
-  const std::string COLLISION_PROCESSING_SERVICE_NAME =
-    "/tabletop_collision_map_processing/tabletop_collision_map_processing";
-  const std::string PICKUP_ACTION_NAME =
-    "/object_manipulator/object_manipulator_pickup";
-  const std::string PLACE_ACTION_NAME =
-    "/object_manipulator/object_manipulator_place";
+  const std::string COLLISION_PROCESSING_SERVICE_NAME = "/tabletop_collision_map_processing/tabletop_collision_map_processing";
+  const std::string PICKUP_ACTION_NAME = "/object_manipulator/object_manipulator_pickup";
+  const std::string PLACE_ACTION_NAME = "/object_manipulator/object_manipulator_place";
+
+  // create TF listener
+  tf_listener = new tf::TransformListener();
 
   //create service and action clients
   ros::ServiceClient object_detection_srv;
@@ -68,12 +125,13 @@ int main(int argc, char **argv)
 
 
 
+
   //call the tabletop detection
   ROS_INFO("Calling tabletop detector");
   tabletop_object_detector::TabletopDetection detection_call;
   //we want recognized database objects returned
   //set this to false if you are using the pipeline without the database
-  detection_call.request.return_clusters = false;
+  detection_call.request.return_clusters = true;
   //we want the individual object point clouds returned as well
   detection_call.request.return_models = false;
   if (!object_detection_srv.call(detection_call))
@@ -104,12 +162,12 @@ int main(int argc, char **argv)
   //pass the result of the tabletop detection
   processing_call.request.detection_result = detection_call.response.detection;
   //ask for the exising map and collision models to be reset
-  processing_call.request.reset_static_map = true;
+  //processing_call.request.reset_static_map = true;
   processing_call.request.reset_collision_models = true;
   processing_call.request.reset_attached_models = true;
   //ask for a new static collision map to be taken with the laser
   //after the new models are added to the environment
-  processing_call.request.take_static_collision_map = true;
+  //processing_call.request.take_static_collision_map = true;
   //ask for the results to be returned in base link frame
   processing_call.request.desired_frame = "katana_base_link";
   if (!collision_processing_srv.call(processing_call))
@@ -125,15 +183,27 @@ int main(int argc, char **argv)
   }
 
 
+  // pick up object near point: 25 cm in front and 15 cm to the right of the robot
+  geometry_msgs::PointStamped pickup_point;
+  pickup_point.header.frame_id = "/base_footprint";
+  pickup_point.point.x = 0.25;
+  pickup_point.point.y = -0.15;
+  pickup_point.point.z = TABLE_HEIGHT;
+
   //call object pickup
   ROS_INFO("Calling the pickup action");
   object_manipulation_msgs::PickupGoal pickup_goal;
   //pass one of the graspable objects returned by the collission map processor
-  pickup_goal.target = processing_call.response.graspable_objects.at(0);
+  int object_to_pick_ind;
+
+  if (!nearest_object(processing_call.response.graspable_objects, pickup_point, object_to_pick_ind))
+    return -1;
+  pickup_goal.target = processing_call.response.graspable_objects[object_to_pick_ind];
+
   //pass the name that the object has in the collision environment
   //this name was also returned by the collision map processor
   pickup_goal.collision_object_name =
-    processing_call.response.collision_object_names.at(0);
+    processing_call.response.collision_object_names.at(object_to_pick_ind);
   //pass the collision name of the table, also returned by the collision
   //map processor
   pickup_goal.collision_support_surface_name =
@@ -141,8 +211,8 @@ int main(int argc, char **argv)
   //pick up the object with the right arm
   pickup_goal.arm_name = "arm";
   pickup_goal.allow_gripper_support_collision = true;
-  pickup_goal.desired_approach_distance = 0.06;
-  pickup_goal.min_approach_distance = 0.04;
+  //pickup_goal.desired_approach_distance = 0.06;
+  //pickup_goal.min_approach_distance = 0.04;
 
   //we will be lifting the object along the "vertical" direction
   //which is along the z axis in the base_link frame
@@ -165,23 +235,23 @@ int main(int argc, char **argv)
   {
     ROS_INFO("Waiting for the pickup action...");
   }
-  object_manipulation_msgs::PickupResult pickup_result =
-    *(pickup_client.getResult());
-  if (pickup_client.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+  object_manipulation_msgs::PickupResult pickup_result = *(pickup_client.getResult());
+  if (pickup_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+  {
+    ROS_INFO("Pickup succeeded.");
+  } else
   {
     ROS_ERROR("The pickup action has failed with result code %d",
               pickup_result.manipulation_result.value);
     return -1;
   }
 
-
-
   //remember where we picked the object up from
   geometry_msgs::PoseStamped pickup_location;
   //for unrecognized point clouds, the location of the object is considered
   //to be the origin of the frame that the cluster is in
   pickup_location.header =
-      processing_call.response.graspable_objects.at(0).cluster.header;
+      processing_call.response.graspable_objects.at(object_to_pick_ind).cluster.header;
     //identity pose
     pickup_location.pose.orientation.w = 1;
 
@@ -198,13 +268,13 @@ int main(int argc, char **argv)
   //the collision names of both the objects and the table
   //same as in the pickup action
   place_goal.collision_object_name =
-    processing_call.response.collision_object_names.at(0);
+    processing_call.response.collision_object_names.at(object_to_pick_ind);
   place_goal.collision_support_surface_name =
     processing_call.response.collision_support_surface_name;
   //information about which grasp was executed on the object, returned by
   //the pickup action
   place_goal.grasp = pickup_result.grasp;
-  //use the right rm to place
+  //use the arm to place
   place_goal.arm_name = "arm";
   //padding used when determining if the requested place location
   //would bring the object in collision with the environment
@@ -222,7 +292,7 @@ int main(int argc, char **argv)
   place_goal.approach.direction = direction;
   //request a vertical put down motion of 10cm before placing the object
   place_goal.approach.desired_distance = 0.1;
-  place_goal.approach.min_distance = 0.5;
+  place_goal.approach.min_distance = 0.05;
   //we are not using tactile based placing
   place_goal.use_reactive_place = false;
   //send the goal

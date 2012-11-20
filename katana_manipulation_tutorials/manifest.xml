@@ -4,10 +4,13 @@
      katana_manipulation_tutorials
 
   </description>
-  <author>Martin</author>
+  <author>Martin Günther</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_manipulation_tutorials</url>
+
+  <depend package="tabletop_object_detector"/>
+  <depend package="tabletop_collision_map_processing"/>
 
 </package>
 

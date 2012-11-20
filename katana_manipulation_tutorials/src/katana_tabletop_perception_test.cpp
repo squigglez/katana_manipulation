@@ -71,7 +71,7 @@ int main(int argc, char **argv)
      }
      else
          {
-           ROS_WARN("Tabletop suceeded and found %d unknown clusters and %d known objects, and the table", detection_call.response.detection.clusters.size(), detection_call.response.detection.models.size());
+           ROS_WARN("Tabletop suceeded and found %zu unknown clusters and %zu known objects, and the table", detection_call.response.detection.clusters.size(), detection_call.response.detection.models.size());
          }
 
      //call collision map processing
@@ -82,14 +82,14 @@ int main(int argc, char **argv)
      processing_call.request.detection_result =
        detection_call.response.detection;
      //ask for the exising map and collision models to be reset
-     processing_call.request.reset_static_map = true;
+     //processing_call.request.reset_static_map = true;
      processing_call.request.reset_collision_models = true;
      processing_call.request.reset_attached_models = true;
      //ask for a new static collision map to be taken with the laser
      //after the new models are added to the environment
-     processing_call.request.take_static_collision_map = true;
+     //processing_call.request.take_static_collision_map = true;
      //ask for the results to be returned in base link frame
-     processing_call.request.desired_frame = "katana_base_link";
+     processing_call.request.desired_frame = "base_footprint";
      if (!collision_processing_srv.call(processing_call))
      {
        ROS_ERROR("Collision map processing service failed");
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
      }
      else
       {
-        ROS_WARN("Collision map processing succeeded and returned %d graspable objects", processing_call.response.graspable_objects.size() );
+        ROS_WARN("Collision map processing succeeded and returned %zu graspable objects", processing_call.response.graspable_objects.size() );
       }
 
 }
