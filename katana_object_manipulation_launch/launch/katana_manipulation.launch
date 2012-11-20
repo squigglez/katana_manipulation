@@ -45,8 +45,7 @@
 
     <param name="arm_joint_controller" value="l_arm_controller" />
 
-    <param name="default_cluster_planner" value="/openrave_grasp_planner" />
-    <!--  <param name="default_cluster_planner" value="/plan_point_cluster_grasp" /> -->
+    <param name="default_cluster_planner" value="/plan_point_cluster_grasp" />
 
     <!--  <param name="default_database_planner" value="/database_grasp_planning" />  -->
 
