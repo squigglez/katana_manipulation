@@ -29,8 +29,25 @@ namespace katana_simple_grasp_planner
 {
 
 GraspPlanner::GraspPlanner() :
-    kinematics_loader_("kinematics_base", "kinematics::KinematicsBase")
+    kinematics_loader_("kinematics_base", "kinematics::KinematicsBase"),
+    as_(nh_, "/plan_point_cluster_grasp", boost::bind(&GraspPlanner::execute_cb, this, _1), false)
 {
+  as_.start();
+
+  // this is usually configured via pr2_gripper_grasp_planner_cluster/config
+  pre_grasp_joint_state_.name.push_back("katana_l_finger_joint");
+  pre_grasp_joint_state_.name.push_back("katana_r_finger_joint");
+  pre_grasp_joint_state_.position.push_back(0.30);
+  pre_grasp_joint_state_.position.push_back(0.30);
+  pre_grasp_joint_state_.effort.push_back(100.0);
+  pre_grasp_joint_state_.effort.push_back(100.0);
+
+  grasp_joint_state_.name = pre_grasp_joint_state_.name;
+  grasp_joint_state_.position.push_back(-0.44);
+  grasp_joint_state_.position.push_back(-0.44);
+  grasp_joint_state_.effort.push_back(50.0);
+  grasp_joint_state_.effort.push_back(50.0);
+
   // see arm_kinematics_constraint_aware/src/arm_kinematics_solver_constraint_aware.cpp
   try
   {
@@ -54,6 +71,8 @@ GraspPlanner::GraspPlanner() :
     ROS_ERROR_STREAM("Initialize is failing for " << group_name);
     return;
   }
+
+  ROS_INFO("katana_simple_grasp_planner initialized.");
 }
 
 GraspPlanner::~GraspPlanner()
@@ -65,13 +84,13 @@ GraspPlanner::~GraspPlanner()
  */
 std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, double z)
 {
-  static const double ANGLE_INC = M_PI / 160;
+  static const double ANGLE_INC = M_PI / 8;
   static const double SIDE_ANGLE_MIN = -M_PI / 2;
-  static const double STRAIGHT_ANGLE_MIN = 0.0;
+  static const double STRAIGHT_ANGLE_MIN = 0.0 + ANGLE_INC;  // + ANGLE_INC, because 0 is already covered by side grasps
   static const double ANGLE_MAX = M_PI / 2;
 
   // how far from the grasp center should the wrist be?
-  static const double STANDOFF = -0.20;
+  static const double STANDOFF = -0.12;
 
   std::vector<tf::Transform> grasps;
 
@@ -140,9 +159,91 @@ std::vector<double> GraspPlanner::get_ik(tf::Transform grasp_tf)
   return solution;
 }
 
+void GraspPlanner::execute_cb(const object_manipulation_msgs::GraspPlanningGoalConstPtr &goal)
+{
+  object_manipulation_msgs::GraspPlanningFeedback feedback;
+  object_manipulation_msgs::GraspPlanningResult result;
+
+
+  // ----- compute the center point of the object
+  // just calculate the average
+  sensor_msgs::PointCloud cloud = goal->target.cluster;
+  float x = 0.0, y = 0.0, z = 0.0;
+  for (size_t i = 0; i < cloud.points.size(); ++i)
+  {
+    x += cloud.points[i].x;
+    y += cloud.points[i].y;
+    z += cloud.points[i].z;
+  }
+  x /= cloud.points.size();
+  y /= cloud.points.size();
+  z /= cloud.points.size();
+
+  std::vector<tf::Transform> grasp_tfs = generate_grasps(x, y, z);
+
+  for (std::vector<tf::Transform>::iterator it = grasp_tfs.begin(); it != grasp_tfs.end(); ++it)
+  {
+    if (get_ik(*it).size() == 0)
+      continue;
+
+    object_manipulation_msgs::Grasp grasp;
+
+    //# The internal posture of the hand for the pre-grasp
+    //# only positions are used
+    //sensor_msgs/JointState pre_grasp_posture
+    grasp.pre_grasp_posture = pre_grasp_joint_state_;
+
+    //# The internal posture of the hand for the grasp
+    //# positions and efforts are used
+    //sensor_msgs/JointState grasp_posture
+    grasp.grasp_posture = grasp_joint_state_;
+
+    //# The position of the end-effector for the grasp relative to a reference frame
+    //# (that is always specified elsewhere, not in this message)
+    //geometry_msgs/Pose grasp_pose
+    tf::poseTFToMsg(*it, grasp.grasp_pose);
+
+    //# The estimated probability of success for this grasp
+    //float64 success_probability
+    grasp.success_probability = 0.5;
+
+    //# Debug flag to indicate that this grasp would be the best in its cluster
+    //bool cluster_rep
+    //
+    //# how far the pre-grasp should ideally be away from the grasp
+    //float32 desired_approach_distance
+    grasp.desired_approach_distance = 0.10;
+
+    //# how much distance between pre-grasp and grasp must actually be feasible
+    //# for the grasp not to be rejected
+    //float32 min_approach_distance
+    grasp.min_approach_distance = 0.05;
+
+    // tf_broadcaster_.sendTransform(tf::StampedTransform(*it, ros::Time::now(), "katana_base_link", "wrist_link"));
+    // ros::Duration(2.0).sleep();
+
+
+    feedback.grasps.push_back(grasp);
+
+    // don't publish feedback for now
+    // as_->publishFeedback(feedback);
+  }
+
+  result.grasps = feedback.grasps;
+  if (result.grasps.size() == 0)
+    result.error_code.value = result.error_code.OTHER_ERROR;
+  else
+    result.error_code.value = result.error_code.SUCCESS;
+
+  ROS_INFO("Returning %zu grasps.", result.grasps.size());
+
+  as_.setSucceeded(result);
+}
+
+
 
 void GraspPlanner::main_loop() {
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(0.5);
 
   std::vector<tf::Transform> grasps = generate_grasps(0.30, 0.20, 0.0);
 
@@ -170,6 +271,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "katana_simple_grasp_planner");
   katana_simple_grasp_planner::GraspPlanner grasp_planner_node;
 
-  grasp_planner_node.main_loop();
+  //grasp_planner_node.main_loop();
+  ros::spin();
   return 0;
 }

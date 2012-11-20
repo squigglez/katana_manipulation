@@ -29,7 +29,11 @@
 #include <tf/transform_broadcaster.h>
 #include <pluginlib/class_loader.h>
 #include <kinematics_base/kinematics_base.h>
+
+#include <actionlib/server/simple_action_server.h>
 #include <sensor_msgs/JointState.h>
+#include <object_manipulation_msgs/GraspPlanningAction.h>
+#include <object_manipulation_msgs/GraspPlanningErrorCode.h>
 
 namespace katana_simple_grasp_planner
 {
@@ -48,8 +52,17 @@ private:
   pluginlib::ClassLoader<kinematics::KinematicsBase> kinematics_loader_;
   boost::shared_ptr<kinematics::KinematicsBase> kinematics_solver_;
 
+  ros::NodeHandle nh_;
+  actionlib::SimpleActionServer<object_manipulation_msgs::GraspPlanningAction> as_;
+
+  sensor_msgs::JointState pre_grasp_joint_state_;
+  sensor_msgs::JointState grasp_joint_state_;
+
+
   std::vector<tf::Transform> generate_grasps(double x, double y, double z);
   std::vector<double> get_ik(tf::Transform grasp_tf);
+
+  void execute_cb(const object_manipulation_msgs::GraspPlanningGoalConstPtr &goal);
 };
 
 } /* namespace katana_simple_grasp_planner */
