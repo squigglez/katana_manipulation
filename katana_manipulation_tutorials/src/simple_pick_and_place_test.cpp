@@ -6,11 +6,53 @@
 #include <tabletop_collision_map_processing/TabletopCollisionMapProcessing.h>
 #include <object_manipulation_msgs/PickupAction.h>
 #include <object_manipulation_msgs/PlaceAction.h>
-
+#include <arm_navigation_msgs/MoveArmAction.h>
+#include <std_srvs/Empty.h>
 
 static const double TABLE_HEIGHT = 0.28;
 
 tf::TransformListener *tf_listener;
+
+
+static const size_t NUM_JOINTS = 5;
+
+bool move_to_joint_goal(std::vector<arm_navigation_msgs::JointConstraint> joint_constraints,
+    actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> &move_arm) {
+
+  arm_navigation_msgs::MoveArmGoal goal;
+
+  goal.motion_plan_request.group_name = "arm";
+  goal.motion_plan_request.num_planning_attempts = 1;
+  goal.motion_plan_request.allowed_planning_time = ros::Duration(5.0);
+
+  goal.motion_plan_request.planner_id = std::string("");
+  goal.planner_service_name = std::string("ompl_planning/plan_kinematic_path");
+
+  goal.motion_plan_request.goal_constraints.joint_constraints = joint_constraints;
+
+
+  bool finished_within_time = false;
+  move_arm.sendGoal(goal);
+  finished_within_time = move_arm.waitForResult(ros::Duration(40.0));
+  if (!finished_within_time)
+  {
+    move_arm.cancelGoal();
+    ROS_INFO("Timed out achieving goal!");
+    return false;
+  }
+  else
+  {
+    actionlib::SimpleClientGoalState state = move_arm.getState();
+    bool success = (state == actionlib::SimpleClientGoalState::SUCCEEDED);
+    if (success)
+      ROS_INFO("Action finished: %s",state.toString().c_str());
+    else
+      ROS_INFO("Action failed: %s",state.toString().c_str());
+
+    return success;
+  }
+}
+
 
 /**
  * return nearest object to point
@@ -74,6 +116,8 @@ int main(int argc, char **argv)
   const std::string COLLISION_PROCESSING_SERVICE_NAME = "/tabletop_collision_map_processing/tabletop_collision_map_processing";
   const std::string PICKUP_ACTION_NAME = "/object_manipulator/object_manipulator_pickup";
   const std::string PLACE_ACTION_NAME = "/object_manipulator/object_manipulator_place";
+  const std::string MOVE_ARM_ACTION_NAME = "/move_arm";
+  const std::string COLLIDER_RESET_SERVICE_NAME = "/collider_node/reset";
 
   // create TF listener
   tf_listener = new tf::TransformListener();
@@ -81,10 +125,12 @@ int main(int argc, char **argv)
   //create service and action clients
   ros::ServiceClient object_detection_srv;
   ros::ServiceClient collision_processing_srv;
+  ros::ServiceClient collider_reset_srv;
   actionlib::SimpleActionClient<object_manipulation_msgs::PickupAction>
     pickup_client(PICKUP_ACTION_NAME, true);
   actionlib::SimpleActionClient<object_manipulation_msgs::PlaceAction>
     place_client(PLACE_ACTION_NAME, true);
+  actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm(MOVE_ARM_ACTION_NAME, true);
 
   //wait for detection client
   while ( !ros::service::waitForService(OBJECT_DETECTION_SERVICE_NAME,
@@ -98,16 +144,24 @@ int main(int argc, char **argv)
     (OBJECT_DETECTION_SERVICE_NAME, true);
 
   //wait for collision map processing client
-  while ( !ros::service::waitForService(COLLISION_PROCESSING_SERVICE_NAME,
-                                        ros::Duration(2.0)) && nh.ok() )
+  while (!ros::service::waitForService(COLLISION_PROCESSING_SERVICE_NAME, ros::Duration(2.0)) && nh.ok())
   {
     ROS_INFO("Waiting for collision processing service to come up");
   }
-  if (!nh.ok()) exit(0);
-  collision_processing_srv =
-    nh.serviceClient
-    <tabletop_collision_map_processing::TabletopCollisionMapProcessing>
-    (COLLISION_PROCESSING_SERVICE_NAME, true);
+  if (!nh.ok())
+    exit(0);
+  collision_processing_srv = nh.serviceClient<tabletop_collision_map_processing::TabletopCollisionMapProcessing>(
+      COLLISION_PROCESSING_SERVICE_NAME, true);
+
+  //wait for collision map processing client
+  while (!ros::service::waitForService(COLLIDER_RESET_SERVICE_NAME, ros::Duration(2.0)) && nh.ok())
+  {
+    ROS_INFO("Waiting for collider reset service to come up");
+  }
+  if (!nh.ok())
+    exit(0);
+  collider_reset_srv = nh.serviceClient<std_srvs::Empty>(
+      COLLIDER_RESET_SERVICE_NAME, true);
 
   //wait for pickup client
   while(!pickup_client.waitForServer(ros::Duration(2.0)) && nh.ok())
@@ -123,10 +177,66 @@ int main(int argc, char **argv)
   }
   if (!nh.ok()) exit(0);
 
+  //wait for move_arm action client
+  while(!move_arm.waitForServer(ros::Duration(2.0)) && nh.ok())
+  {
+    ROS_INFO_STREAM("Waiting for action client " << MOVE_ARM_ACTION_NAME);
+  }
+  if (!nh.ok()) exit(0);
 
 
 
-  //call the tabletop detection
+
+
+  // ----- reset collision map
+  ROS_INFO("Clearing collision map");
+  std_srvs::Empty empty;
+  if (!collider_reset_srv.call(empty))
+  {
+    ROS_ERROR("Collider reset service failed");
+    return -1;
+  }
+  ros::Duration(5.0).sleep();   // wait for collision map to be completely cleared
+
+  // ----- move arm out of the way
+  std::vector<std::string> names(NUM_JOINTS);
+  names[0] = "katana_motor1_pan_joint";
+  names[1] = "katana_motor2_lift_joint";
+  names[2] = "katana_motor3_lift_joint";
+  names[3] = "katana_motor4_lift_joint";
+  names[4] = "katana_motor5_wrist_roll_joint";
+
+
+  std::vector<arm_navigation_msgs::JointConstraint> joint_constraints(NUM_JOINTS);
+
+  for (size_t i = 0; i < NUM_JOINTS; ++i)
+  {
+    joint_constraints[i].joint_name = names[i];
+    joint_constraints[i].tolerance_below = 0.1;
+    joint_constraints[i].tolerance_above = 0.1;
+  }
+
+  //  - post_calibration_posture:
+  //      name: ['katana_motor1_pan_joint', 'katana_motor2_lift_joint', 'katana_motor3_lift_joint', 'katana_motor4_lift_joint', 'katana_motor5_wrist_roll_joint']
+  //      position: [-2.9641690268167444, 2.13549384276445, -2.1556486321117725, -1.971949347057968, -2.9318804356548496]
+  //  - arm_away_posture:
+  //      name: ['katana_motor1_pan_joint', 'katana_motor2_lift_joint', 'katana_motor3_lift_joint', 'katana_motor4_lift_joint', 'katana_motor5_wrist_roll_joint', 'katana_r_finger_joint', 'katana_l_finger_joint']
+  //      position: [0.0, 2.13549384276445, -2.1556486321117725, -1.971949347057968, 0.0]
+
+  joint_constraints[0].position =  0.0;
+  joint_constraints[1].position =  2.13549384276445;
+  joint_constraints[2].position = -2.1556486321117725;
+  joint_constraints[3].position = -1.971949347057968;
+  joint_constraints[4].position = 0.0;
+
+  ROS_INFO("Moving arm away");
+  bool success;
+  success = move_to_joint_goal(joint_constraints, move_arm);
+  if (!success)
+    return -1;
+
+
+  // ----- call the tabletop detection
   ROS_INFO("Calling tabletop detector");
   tabletop_object_detector::TabletopDetection detection_call;
   //we want recognized database objects returned
@@ -154,8 +264,7 @@ int main(int argc, char **argv)
   }
 
 
-
-  //call collision map processing
+  // ----- call collision map processing
   ROS_INFO("Calling collision map processing");
   tabletop_collision_map_processing::TabletopCollisionMapProcessing
     processing_call;
@@ -183,7 +292,7 @@ int main(int argc, char **argv)
   }
 
 
-  // pick up object near point: 25 cm in front and 15 cm to the right of the robot
+  // ----- pick up object near point: 25 cm in front and 15 cm to the right of the robot
   geometry_msgs::PointStamped pickup_point;
   pickup_point.header.frame_id = "/base_footprint";
   pickup_point.point.x = 0.25;
@@ -234,6 +343,8 @@ int main(int argc, char **argv)
   while (!pickup_client.waitForResult(ros::Duration(10.0)))
   {
     ROS_INFO("Waiting for the pickup action...");
+    if (!nh.ok())
+      return -1;
   }
   object_manipulation_msgs::PickupResult pickup_result = *(pickup_client.getResult());
   if (pickup_client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -255,12 +366,12 @@ int main(int argc, char **argv)
     //identity pose
     pickup_location.pose.orientation.w = 1;
 
-  //create a place location, offset by 10 cm from the pickup location
+  //create a place location, offset by 30 cm from the pickup location
   geometry_msgs::PoseStamped place_location = pickup_location;
   place_location.header.stamp = ros::Time::now();
- // place_location.pose.position.x -= 0.02;
+  place_location.pose.position.y += 0.3;
 
-  //put the object down
+  // ----- put the object down
   ROS_INFO("Calling the place action");
   object_manipulation_msgs::PlaceGoal place_goal;
   //place at the prepared location
@@ -300,6 +411,8 @@ int main(int argc, char **argv)
   while (!place_client.waitForResult(ros::Duration(10.0)))
   {
     ROS_INFO("Waiting for the place action...");
+    if (!nh.ok())
+      return -1;
   }
   object_manipulation_msgs::PlaceResult place_result =
     *(place_client.getResult());
@@ -309,6 +422,12 @@ int main(int argc, char **argv)
               place_result.manipulation_result.value);
     return -1;
   }
+
+  // ----- move arm away again
+  ROS_INFO("Moving arm away");
+  success = move_to_joint_goal(joint_constraints, move_arm);
+  if (!success)
+    return -1;
 
   //success!
   ROS_INFO("Success! Object moved.");
