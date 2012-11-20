@@ -39,7 +39,7 @@
 
 from __future__ import division
 import roslib
-roslib.load_manifest('katana_tabletop_manipulation_launch')
+roslib.load_manifest('katana_manipulation_tutorials')
 import rospy
 from geometry_msgs.msg import Pose, PoseStamped, Point, Point32, PointStamped, Vector3, Vector3Stamped, Quaternion, QuaternionStamped
 from sensor_msgs.msg import PointCloud

@@ -1,0 +1,14 @@
+<package>
+  <description brief="katana_manipulation_tutorials">
+
+     katana_manipulation_tutorials
+
+  </description>
+  <author>Martin</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/katana_manipulation_tutorials</url>
+
+</package>
+
+

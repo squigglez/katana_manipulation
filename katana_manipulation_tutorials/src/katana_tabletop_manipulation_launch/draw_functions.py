@@ -39,7 +39,7 @@
 
 from __future__ import division
 import roslib
-roslib.load_manifest('katana_tabletop_manipulation_launch')
+roslib.load_manifest('katana_manipulation_tutorials')
 import rospy
 
 from visualization_msgs.msg import Marker
