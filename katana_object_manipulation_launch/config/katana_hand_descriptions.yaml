@@ -1,6 +1,6 @@
 hand_description:
   arm:
-    hand_frame: katana_gripper_tool_frame
+    hand_frame: katana_motor5_wrist_roll_link
     robot_frame: katana_base_link
     attached_objects_name: attached
     attach_link: katana_r_finger_link
