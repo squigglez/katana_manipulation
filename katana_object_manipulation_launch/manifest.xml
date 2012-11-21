@@ -8,7 +8,9 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_object_manipulation_launch</url>
+
   <depend package="object_manipulator"/>
-  <depend package="orrosplanning"/>
+  <depend package="rospy"/>
+  <depend package="pr2_mechanism_msgs" />
 
 </package>
