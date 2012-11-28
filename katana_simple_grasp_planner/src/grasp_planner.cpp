@@ -84,8 +84,7 @@ GraspPlanner::~GraspPlanner()
  */
 std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, double z)
 {
-  static const double ANGLE_INC = M_PI / 8;
-  static const double SIDE_ANGLE_MIN = -M_PI / 2;
+  static const double ANGLE_INC = M_PI / 16;
   static const double STRAIGHT_ANGLE_MIN = 0.0 + ANGLE_INC;  // + ANGLE_INC, because 0 is already covered by side grasps
   static const double ANGLE_MAX = M_PI / 2;
 
@@ -106,15 +105,27 @@ std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, dou
   //  1. side grasp (xy-planes of `katana_motor5_wrist_roll_link` and of `katana_base_link` are parallel):
   //     - standard: `rpy = (0, 0, *)` (orientation of `katana_motor5_wrist_roll_link` in `katana_base_link` frame)
   //     - overhead: `rpy = (pi, 0, *)`
+  transform.setOrigin(tf::Vector3(x, y, z));
+
   for (double roll = 0.0; roll <= M_PI; roll += M_PI)
   {
     double pitch = 0.0;
-    for (double yaw = SIDE_ANGLE_MIN + atan2(y, x); yaw <= ANGLE_MAX + atan2(y, x); yaw += ANGLE_INC)
-    {
-      transform.setOrigin(tf::Vector3(x, y, z));
-      transform.setRotation(tf::createQuaternionFromRPY(roll, pitch, yaw));
 
+    // add yaw = 0 first, then +ANGLE_INC, -ANGLE_INC, 2*ANGLE_INC, ...
+    // reason: grasps with yaw near 0 mean that the approach is from the
+    // direction of the arm; it is usually easier to place the object back like
+    // this
+    for (double yaw = ANGLE_INC; yaw <= ANGLE_MAX; yaw += ANGLE_INC)
+    {
+      // + atan2 to center the grasps around the vector from arm to object
+      transform.setRotation(tf::createQuaternionFromRPY(roll, pitch, yaw + atan2(y, x)));
       grasps.push_back(transform * standoff_trans);
+
+      if (yaw != 0.0)
+      {
+        transform.setRotation(tf::createQuaternionFromRPY(roll, pitch, -yaw + atan2(y, x)));
+        grasps.push_back(transform * standoff_trans);
+      }
     }
   }
 
@@ -183,6 +194,7 @@ void GraspPlanner::execute_cb(const object_manipulation_msgs::GraspPlanningGoalC
 
   for (std::vector<tf::Transform>::iterator it = grasp_tfs.begin(); it != grasp_tfs.end(); ++it)
   {
+    // skip grasps without IK solution
     if (get_ik(*it).size() == 0)
       continue;
 
