@@ -235,6 +235,16 @@ int main(int argc, char **argv)
   if (!success)
     return -1;
 
+  ros::Duration(2.0).sleep();   // only necessary for Gazebo (the simulated Kinect point cloud lags, so we need to wait for it to settle)
+
+  // ----- reset collision map
+  ROS_INFO("Clearing collision map");
+  if (!collider_reset_srv.call(empty))
+  {
+    ROS_ERROR("Collider reset service failed");
+    return -1;
+  }
+  ros::Duration(5.0).sleep();   // wait for collision map to be completely cleared
 
   // ----- call the tabletop detection
   ROS_INFO("Calling tabletop detector");
