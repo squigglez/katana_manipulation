@@ -153,7 +153,7 @@ int main(int argc, char **argv)
   collision_processing_srv = nh.serviceClient<tabletop_collision_map_processing::TabletopCollisionMapProcessing>(
       COLLISION_PROCESSING_SERVICE_NAME, true);
 
-  //wait for collision map processing client
+  //wait for collider reset service
   while (!ros::service::waitForService(COLLIDER_RESET_SERVICE_NAME, ros::Duration(2.0)) && nh.ok())
   {
     ROS_INFO("Waiting for collider reset service to come up");
