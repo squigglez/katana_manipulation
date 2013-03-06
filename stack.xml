@@ -5,7 +5,6 @@
     <ul>
       <li>configuration files for the arm_navigation pipeline (package katana_arm_navigation),</li>
       <li>an interpolated IK motion planner (package katana_interpolated_ik_motion_planner),</li>
-      <li>a grasp planner based on OpenRAVE (package katana_openrave_grasp_planner),</li>
       <li>core functionality for pickup and place tasks (packages katana_object_manipulator, katana_object_manipulation_launch),</li>
       <li>a collision map for tabletop manipulation (package katana_tabletop_collision_map_processing), and</li>
       <li>the top-level launch files for the whole stack (package katana_tabletop_manipulation_launch).</li>
