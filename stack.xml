@@ -4,7 +4,6 @@
     This stack contains kinematics, motion planning and grasp planning for the Katana arm. Specifically:
     <ul>
       <li>configuration files for the arm_navigation pipeline (package katana_arm_navigation),</li>
-      <li>constraint-aware forward and inverse kinematics (package katana_kinematics_constraint_aware),</li>
       <li>an interpolated IK motion planner (package katana_interpolated_ik_motion_planner),</li>
       <li>a grasp planner based on OpenRAVE (package katana_openrave_grasp_planner),</li>
       <li>core functionality for pickup and place tasks (packages katana_object_manipulator, katana_object_manipulation_launch),</li>
