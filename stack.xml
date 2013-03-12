@@ -9,8 +9,6 @@
       <li>a collision map for tabletop manipulation (package katana_tabletop_collision_map_processing), and</li>
       <li>the top-level launch files for the whole stack (package katana_tabletop_manipulation_launch).</li>
     </ul>
-
-    <p>This stack only runs under ROS Diamondback at the moment.</p>
   </description>
   <author>Maintained by Martin Günther, Henning Deeken</author>
   <license>GPL</license>  
