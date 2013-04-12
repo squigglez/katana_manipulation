@@ -6,6 +6,7 @@
 #include <tabletop_collision_map_processing/TabletopCollisionMapProcessing.h>
 #include <object_manipulation_msgs/PickupAction.h>
 #include <object_manipulation_msgs/PlaceAction.h>
+#include <object_manipulation_msgs/ManipulationResult.h>
 #include <arm_navigation_msgs/MoveArmAction.h>
 #include <std_srvs/Empty.h>
 
@@ -428,10 +429,26 @@ int main(int argc, char **argv)
     *(place_client.getResult());
   if (place_client.getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
   {
-    ROS_ERROR("Place failed with error code %d",
-              place_result.manipulation_result.value);
+    if (place_result.manipulation_result.value == object_manipulation_msgs::ManipulationResult::RETREAT_FAILED)
+    {
+      ROS_WARN("Place failed with error RETREAT_FAILED, ignoring! This may lead to collision with the object we just placed!");
+    } else {
+      ROS_ERROR("Place failed with error code %d",
+          place_result.manipulation_result.value);
+      return -1;
+    }
+  }
+
+  ros::Duration(2.0).sleep();   // only necessary for Gazebo (the simulated Kinect point cloud lags, so we need to wait for it to settle)
+
+  // ----- reset collision map
+  ROS_INFO("Clearing collision map");
+  if (!collider_reset_srv.call(empty))
+  {
+    ROS_ERROR("Collider reset service failed");
     return -1;
   }
+  ros::Duration(5.0).sleep();   // wait for collision map to be completely cleared
 
   // ----- move arm away again
   ROS_INFO("Moving arm away");
