@@ -41,6 +41,8 @@
 
     <param name="default_cluster_planner" value="/plan_point_cluster_grasp" />
 
+    <param name="kinematics_plugin_name" value="arm_kinematics_constraint_aware/KDLArmKinematicsPlugin" />
+
     <!--  <param name="default_database_planner" value="/database_grasp_planning" />  -->
 
     <!--  <param name="default_probabilistic_planner" value="/probabilistic_grasp_planning" /> -->
