@@ -1,16 +1,14 @@
 <stack>
   <description brief="katana_manipulation">
 
-    This stack contains kinematics, motion planning and grasp planning for the Katana arm. Specifically:
+    This stack contains object_manipulation configuration files for the Katana arm. Specifically:
     <ul>
-      <li>configuration files for the arm_navigation pipeline (package katana_arm_navigation),</li>
-      <li>an interpolated IK motion planner (package katana_interpolated_ik_motion_planner),</li>
-      <li>core functionality for pickup and place tasks (packages katana_object_manipulator, katana_object_manipulation_launch),</li>
-      <li>a collision map for tabletop manipulation (package katana_tabletop_collision_map_processing), and</li>
-      <li>the top-level launch files for the whole stack (package katana_tabletop_manipulation_launch).</li>
+      <li>configuration files for the object_manipulator pipeline: object_manipulator, grasp planning, planning environment, IIK (package katana_object_manipulation_launch),</li>
+      <li>a rudimentary grasp planner that considers the kinematic limitations of the Katana (package katana_simple_grasp_planner)</li>
+      <li>the top-level launch files for the whole arm navigation and object manipulation pipelines (package katana_tabletop_manipulation_launch).</li>
     </ul>
   </description>
-  <author>Maintained by Martin Günther, Henning Deeken</author>
+  <author>Maintained by Martin Günther</author>
   <license>GPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/katana_manipulation</url>
