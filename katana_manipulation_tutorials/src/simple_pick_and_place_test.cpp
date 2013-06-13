@@ -253,8 +253,8 @@ int main(int argc, char **argv)
   //we want recognized database objects returned
   //set this to false if you are using the pipeline without the database
   detection_call.request.return_clusters = true;
-  //we want the individual object point clouds returned as well
-  detection_call.request.return_models = false;
+  //we want the individual object point clouds returned as well; this *must* be set to true, otherwise tabletop_collision_map_processing will segfault.
+  detection_call.request.return_models = true;
   if (!object_detection_srv.call(detection_call))
   {
     ROS_ERROR("Tabletop detection service failed");
