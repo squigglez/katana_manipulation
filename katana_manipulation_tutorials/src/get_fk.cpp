@@ -41,7 +41,7 @@ int main(int argc, char **argv)
   kinematics_msgs::GetPositionFK::Response fk_response;
   fk_request.header.frame_id = "katana_base_link";
   fk_request.fk_link_names.resize(1);
-  fk_request.fk_link_names[0] = "katana_motor5_wrist_roll_link";
+  fk_request.fk_link_names[0] = "katana_gripper_tool_frame";
   fk_request.robot_state.joint_state.position.resize(response.kinematic_solver_info.joint_names.size());
   fk_request.robot_state.joint_state.name = response.kinematic_solver_info.joint_names;
   for (unsigned int i = 0; i < response.kinematic_solver_info.joint_names.size(); i++)
