@@ -37,27 +37,18 @@ int main(int argc, char **argv){
   kinematics_msgs::GetPositionIK::Request  gpik_req;
   kinematics_msgs::GetPositionIK::Response gpik_res;
   gpik_req.timeout = ros::Duration(5.0);
-  gpik_req.ik_request.ik_link_name = "katana_motor5_wrist_roll_link";
+  gpik_req.ik_request.ik_link_name = "katana_gripper_tool_frame";
 
   // values for all links set to 0.0 rad (from get_fk):
   gpik_req.ik_request.pose_stamped.header.frame_id = "katana_base_link";
-    gpik_req.ik_request.pose_stamped.pose.position.x = 0.4763;
-    gpik_req.ik_request.pose_stamped.pose.position.y = 0.0;
-    gpik_req.ik_request.pose_stamped.pose.position.z = 0.2015;
+  gpik_req.ik_request.pose_stamped.pose.position.x = 0.3473;
+  gpik_req.ik_request.pose_stamped.pose.position.y = -0.0898;
+  gpik_req.ik_request.pose_stamped.pose.position.z = 0.3115;
+  gpik_req.ik_request.pose_stamped.pose.orientation.x = 0.0;
+  gpik_req.ik_request.pose_stamped.pose.orientation.y = 0.0;
+  gpik_req.ik_request.pose_stamped.pose.orientation.z = 0.2657;
+  gpik_req.ik_request.pose_stamped.pose.orientation.w = 0.9641;
 
-    gpik_req.ik_request.pose_stamped.pose.orientation.x = 0.0;
-    gpik_req.ik_request.pose_stamped.pose.orientation.y = -0.707107;
-    gpik_req.ik_request.pose_stamped.pose.orientation.z = 0.0;
-    gpik_req.ik_request.pose_stamped.pose.orientation.w = -0.707107;
-
-//  gpik_req.ik_request.pose_stamped.pose.position.x = 0.162;
-//  gpik_req.ik_request.pose_stamped.pose.position.y = -0.413;
-//  gpik_req.ik_request.pose_stamped.pose.position.z = -0.028;
-//
-//  gpik_req.ik_request.pose_stamped.pose.orientation.x = 0.840;
-//  gpik_req.ik_request.pose_stamped.pose.orientation.y = -0.534;
-//  gpik_req.ik_request.pose_stamped.pose.orientation.z = -0.049;
-//  gpik_req.ik_request.pose_stamped.pose.orientation.w = 0.085;
   gpik_req.ik_request.ik_seed_state.joint_state.position.resize(response.kinematic_solver_info.joint_names.size());
   gpik_req.ik_request.ik_seed_state.joint_state.name = response.kinematic_solver_info.joint_names;
   for(unsigned int i=0; i< response.kinematic_solver_info.joint_names.size(); i++)
