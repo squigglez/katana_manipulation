@@ -41,7 +41,8 @@
   <param name="kurtana_arm_kinematics/object_padd" value="0.04"/>
 
   <!-- interpolated IK -->
-  <node name="interpolated_ik_node" pkg="interpolated_ik_motion_planner" 
+  <!-- DO NOT CHANGE THE NODE NAME. It has to be called interpolated_ik_motion_planner_server, otherwise the private parameters won't be read due to name mangling in the node. -->
+  <node name="interpolated_ik_motion_planner_server" pkg="interpolated_ik_motion_planner" 
     type="interpolated_ik_motion_planner.py" respawn="false" output="screen">
     <param name="robot_prefix" type="string" value="kurtana"/>
     <param name="consistent_angle" type="double" value="1.05"/>
