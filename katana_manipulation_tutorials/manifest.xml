@@ -12,6 +12,7 @@
   <depend package="tabletop_object_detector"/>
   <depend package="tabletop_collision_map_processing"/>
   <depend package="arm_navigation_msgs"/>
+  <depend package="manipulation_msgs"/>
 
 </package>
 

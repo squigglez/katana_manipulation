@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <tabletop_object_detector/TabletopDetection.h>
 #include <tabletop_collision_map_processing/TabletopCollisionMapProcessing.h>
-#include <object_manipulation_msgs/GraspPlanning.h>
+#include <manipulation_msgs/GraspPlanning.h>
 #include <visualization_msgs/Marker.h>
 
 int main(int argc, char **argv)
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   }
   if (!nh.ok())
     exit(0);
-  grasp_planner_srv = nh.serviceClient<object_manipulation_msgs::GraspPlanning> (GRASP_PLANNER_SERVICE_NAME,
+  grasp_planner_srv = nh.serviceClient<manipulation_msgs::GraspPlanning> (GRASP_PLANNER_SERVICE_NAME,
                                                                                  true);
 
   //call the tabletop detection
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
   ROS_ERROR("und weiter");
 
   //call the planner and save the list of grasps
-  object_manipulation_msgs::GraspPlanning srv;
+  manipulation_msgs::GraspPlanning srv;
   srv.request.arm_name = "arm";
 
   ROS_INFO("taking first object with:");
@@ -144,21 +144,21 @@ int main(int argc, char **argv)
   }
 
 
-  //object_manipulation_msgs::Grasp grasps[] = srv.response.grasps;
+  //manipulation_msgs::Grasp grasps[] = srv.response.grasps;
   if (srv.response.error_code.value == srv.response.error_code.SUCCESS)
     {
       ROS_INFO("Calling the GraspPlanner succeded");
     }
 
-  object_manipulation_msgs::Grasp current_grasp = srv.response.grasps.at(0);
+  manipulation_msgs::Grasp current_grasp = srv.response.grasps.at(0);
 
   ROS_INFO("Current Grasp at: %f % f % f // %f %f %f %f",
-      current_grasp.grasp_pose.position.x,
-      current_grasp.grasp_pose.position.y,
-      current_grasp.grasp_pose.position.z,
-      current_grasp.grasp_pose.orientation.x,
-      current_grasp.grasp_pose.orientation.y,
-      current_grasp.grasp_pose.orientation.z,
-      current_grasp.grasp_pose.orientation.w);
+      current_grasp.grasp_pose.pose.position.x,
+      current_grasp.grasp_pose.pose.position.y,
+      current_grasp.grasp_pose.pose.position.z,
+      current_grasp.grasp_pose.pose.orientation.x,
+      current_grasp.grasp_pose.pose.orientation.y,
+      current_grasp.grasp_pose.pose.orientation.z,
+      current_grasp.grasp_pose.pose.orientation.w);
 
 }

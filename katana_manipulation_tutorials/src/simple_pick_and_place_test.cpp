@@ -58,7 +58,7 @@ bool move_to_joint_goal(std::vector<arm_navigation_msgs::JointConstraint> joint_
 /**
  * return nearest object to point
  */
-bool nearest_object(std::vector<object_manipulation_msgs::GraspableObject>& objects, geometry_msgs::PointStamped& reference_point, int& object_ind)
+bool nearest_object(std::vector<manipulation_msgs::GraspableObject>& objects, geometry_msgs::PointStamped& reference_point, int& object_ind)
 {
   geometry_msgs::PointStamped point;
 
