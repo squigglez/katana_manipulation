@@ -170,10 +170,10 @@ std::vector<double> GraspPlanner::get_ik(tf::Transform grasp_tf)
   return solution;
 }
 
-void GraspPlanner::execute_cb(const object_manipulation_msgs::GraspPlanningGoalConstPtr &goal)
+void GraspPlanner::execute_cb(const manipulation_msgs::GraspPlanningGoalConstPtr &goal)
 {
-  object_manipulation_msgs::GraspPlanningFeedback feedback;
-  object_manipulation_msgs::GraspPlanningResult result;
+  manipulation_msgs::GraspPlanningFeedback feedback;
+  manipulation_msgs::GraspPlanningResult result;
 
 
   // ----- compute the center point of the object
@@ -198,7 +198,11 @@ void GraspPlanner::execute_cb(const object_manipulation_msgs::GraspPlanningGoalC
     if (get_ik(*it).size() == 0)
       continue;
 
-    object_manipulation_msgs::Grasp grasp;
+    manipulation_msgs::Grasp grasp;
+
+    // TODO:
+    //# A name for this grasp
+    //string id
 
     //# The internal posture of the hand for the pre-grasp
     //# only positions are used
@@ -212,28 +216,40 @@ void GraspPlanner::execute_cb(const object_manipulation_msgs::GraspPlanningGoalC
 
     //# The position of the end-effector for the grasp relative to a reference frame
     //# (that is always specified elsewhere, not in this message)
-    //geometry_msgs/Pose grasp_pose
-    tf::poseTFToMsg(*it, grasp.grasp_pose);
+    //geometry_msgs/PoseStamped grasp_pose
+    tf::poseTFToMsg(*it, grasp.grasp_pose.pose);
+    // TODO: grasp_pose.header
 
-    //# The estimated probability of success for this grasp
-    //float64 success_probability
-    grasp.success_probability = 0.5;
+    //# The estimated probability of success for this grasp, or some other
+    //# measure of how "good" it is.
+    //float64 grasp_quality
+    grasp.grasp_quality = 0.5;
 
-    //# Debug flag to indicate that this grasp would be the best in its cluster
-    //bool cluster_rep
-    //
-    //# how far the pre-grasp should ideally be away from the grasp
-    //float32 desired_approach_distance
-    grasp.desired_approach_distance = 0.10;
+    //# The approach motion
+    //GripperTranslation approach
+    //# the direction of the translation
+    // TODO: geometry_msgs/Vector3Stamped direction
+    //# the desired translation distance
+    grasp.approach.desired_distance = 0.10;
+    //# the min distance that must be considered feasible before the
+    //# grasp is even attempted
+    grasp.approach.min_distance = 0.05;
 
-    //# how much distance between pre-grasp and grasp must actually be feasible
-    //# for the grasp not to be rejected
-    //float32 min_approach_distance
-    grasp.min_approach_distance = 0.05;
+    // TODO:
+    //# The retreat motion
+    //GripperTranslation retreat
 
-    // tf_broadcaster_.sendTransform(tf::StampedTransform(*it, ros::Time::now(), "katana_base_link", "wrist_link"));
+    //# the maximum contact force to use while grasping (<=0 to disable)
+    //float32 max_contact_force
+    grasp.max_contact_force = -1.0;
+
+    // TODO:
+    //# an optional list of obstacles that we have semantic information about
+    //# and that can be touched/pushed/moved in the course of grasping
+    //string[] allowed_touch_objects
+
+    //tf_broadcaster_.sendTransform(tf::StampedTransform(*it, ros::Time::now(), "katana_base_link", "wrist_link"));
     // ros::Duration(2.0).sleep();
-
 
     feedback.grasps.push_back(grasp);
 
