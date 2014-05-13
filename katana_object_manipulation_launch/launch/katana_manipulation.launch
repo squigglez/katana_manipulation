@@ -8,7 +8,7 @@
   <!-- <rosparam command="load" file="$(find pr2_object_manipulation_launch)/config/pr2_arm_configurations.yaml"/> -->
 
   <!-- grasp planner -->
-  <node pkg="katana_simple_grasp_planner" type="grasp_planner" name="katana_simple_grasp_planner" />
+  <node pkg="katana_simple_grasp_planner" type="grasp_planner" name="katana_simple_grasp_planner" output="screen" />
 
   <!--object manipulator-->
 

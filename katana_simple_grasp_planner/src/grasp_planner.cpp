@@ -51,7 +51,7 @@ GraspPlanner::GraspPlanner() :
   // see arm_kinematics_constraint_aware/src/arm_kinematics_solver_constraint_aware.cpp
   try
   {
-      kinematics_solver_ = kinematics_loader_.createInstance("arm_kinematics_constraint_aware/KDLArmKinematicsPlugin");
+      kinematics_solver_ = kinematics_loader_.createInstance("katana_450_6m90a_kinematics/IKFastKinematicsPlugin");
   }
   catch(pluginlib::PluginlibException& ex)
   {
@@ -61,7 +61,7 @@ GraspPlanner::GraspPlanner() :
 
   std::string group_name = "arm";
   std::string base_name = "katana_base_link";
-  std::string tip_name = "katana_motor5_wrist_roll_link";
+  std::string tip_name = "katana_gripper_tool_frame";
 
   if(kinematics_solver_->initialize(group_name,
                                     base_name,
@@ -89,7 +89,7 @@ std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, dou
   static const double ANGLE_MAX = M_PI / 2;
 
   // how far from the grasp center should the wrist be?
-  static const double STANDOFF = -0.12;
+  static const double STANDOFF = -0.01;
 
   std::vector<tf::Transform> grasps;
 
@@ -97,8 +97,7 @@ std::vector<tf::Transform> GraspPlanner::generate_grasps(double x, double y, dou
 
   tf::Transform standoff_trans;
   standoff_trans.setOrigin(tf::Vector3(STANDOFF, 0.0, 0.0));
-  standoff_trans.setRotation(tf::createIdentityQuaternion());
-
+  standoff_trans.setRotation(tf::Quaternion(0.0, sqrt(2)/2, 0.0, sqrt(2)/2));
 
   // ----- side grasps
   //
@@ -165,7 +164,7 @@ std::vector<double> GraspPlanner::get_ik(tf::Transform grasp_tf)
   if (error_code == 1)
     ROS_DEBUG("IK solution: %f %f %f %f %f", solution[0], solution[1], solution[2], solution[3], solution[4]);
   else
-    ROS_INFO("no IK found (error %d)", error_code);
+    ROS_DEBUG("no IK found (error %d)", error_code);
 
   return solution;
 }
